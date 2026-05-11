@@ -1,20 +1,10 @@
-\### 📌 Current Phase
-
-Backend Core Setup
+\# 📘 Progress Log — Finance App
 
 
 
-\---
+\## 📌 Current Phase
 
-
-
-\## PHASE 2 — Backend Foundation
-
-
-
-\### 🎯 Goal
-
-راه‌اندازی backend استاندارد و آماده برای API + Database + Auth
+Backend Core (API + Infrastructure Layer)
 
 
 
@@ -22,19 +12,13 @@ Backend Core Setup
 
 
 
-\### ✅ Done
+\## 🧭 PHASE 2 — Backend Core
 
-\- ساختار فولدرها ایجاد شد
 
-\- فایل‌های اولیه ایجاد شدند
 
-\- express, cors, dotenv نصب شد
+\### 🎯 Objective
 
-\- nodemon نصب شد
-
-\- server.js ساخته شد
-
-\- سرور روی پورت 5000 اجرا شد ✔
+راه‌اندازی API پایدار، امن و مقیاس‌پذیر به‌عنوان هسته اصلی سیستم مالی
 
 
 
@@ -42,9 +26,63 @@ Backend Core Setup
 
 
 
-\### 🔄 In Progress
+\## ✅ Completed
 
-\- ساختار backend (src architecture)
+
+
+\### 🏗 Project Foundation
+
+\- ساختار Monorepo ایجاد شد
+
+\- فولدرهای اصلی پروژه آماده شد:
+
+&#x20; - backend/
+
+&#x20; - web/
+
+&#x20; - mobile/
+
+&#x20; - shared/
+
+&#x20; - docs/
+
+
+
+\### ⚙ Backend Setup
+
+\- Node.js project initialized
+
+\- Express.js server configured
+
+\- CORS middleware فعال شد
+
+\- dotenv برای مدیریت environment variables اضافه شد
+
+\- nodemon برای development workflow نصب شد
+
+\- server.js ساخته شد و اجرا شد
+
+\- API base endpoint تست شد (GET /)
+
+
+
+\### 🔐 Configuration
+
+\- .env فایل تنظیم شد (PORT, NODE\_ENV)
+
+\- .gitignore اصلاح شد
+
+\- Git repository initialized
+
+\- Initial commit انجام شد
+
+
+
+\### 🧪 Development Workflow
+
+\- nodemon برای auto-restart فعال شد
+
+\- scripts dev/start تنظیم شد
 
 
 
@@ -52,15 +90,17 @@ Backend Core Setup
 
 
 
-\### ⏭ Next Step
+\## ⚙ Technical Stack (Backend)
 
-\- نصب Prisma
+\- Node.js
 
-\- نصب PostgreSQL
+\- Express.js
 
-\- طراحی دیتابیس (User Model)
+\- dotenv
 
-\- شروع Authentication (JWT)
+\- cors
+
+\- nodemon (dev)
 
 
 
@@ -68,15 +108,141 @@ Backend Core Setup
 
 
 
-\## 📋 Session Log
+\## 🧱 Architecture Rules
 
 
 
-\### Session 2
+\- ❌ No business logic inside routes
 
-\- backend server setup انجام شد
+\- ❌ No direct database access (future layer)
 
-\- nodemon فعال شد
+\- ❌ No hardcoded secrets
 
-\- اولین API تست شد (/ route)
+\- ✔ Modular structure (routes / controllers / services)
+
+\- ✔ REST API design principle
+
+
+
+\---
+
+
+
+\## 🔐 Environment Strategy
+
+
+
+\- .env فقط برای development
+
+\- production secrets فقط روی server/cloud
+
+\- هیچ secret ای داخل Git ذخیره نمی‌شود
+
+
+
+\---
+
+
+
+\## 🧠 Architecture Decisions
+
+
+
+\- Monorepo structure (web + mobile + backend)
+
+\- Backend-first development approach
+
+\- Database: PostgreSQL (next phase)
+
+\- ORM: Prisma (next phase)
+
+\- Web: Next.js (future)
+
+\- Mobile: React Native + Expo (future)
+
+
+
+\---
+
+
+
+\## 🚀 Product Vision
+
+
+
+\- 🌐 Web App
+
+\- 📱 Android App
+
+\- 📱 iOS App
+
+\- 🔐 Secure Authentication System
+
+\- ☁ Cloud Deployment Ready
+
+\- 📊 Scalable Financial Backend
+
+
+
+\---
+
+
+
+\## 📋 Session History
+
+
+
+\### Session 1 — Foundation Setup
+
+\- Project structure created
+
+\- Git initialized
+
+\- Docs system created
+
+\- Initial config files added
+
+
+
+\### Session 2 — Backend Core
+
+\- Express server created
+
+\- Middleware setup completed
+
+\- .env configured
+
+\- nodemon enabled
+
+\- API tested successfully
+
+
+
+\---
+
+
+
+\## 📌 Current Status
+
+🟢 Backend running successfully  
+
+🟡 Ready for Database layer (PostgreSQL + Prisma)
+
+
+
+\---
+
+
+
+\## ⏭ Next Phase
+
+\- PostgreSQL setup
+
+\- Prisma ORM setup
+
+\- Database schema design
+
+\- User model creation
+
+\- Auth system (JWT)
 

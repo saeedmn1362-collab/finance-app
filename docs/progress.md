@@ -1,10 +1,10 @@
-\# 📘 Progress Log — Finance App
+\# Progress Log
 
 
 
 \## 📌 Current Phase
 
-Backend Core (API + Infrastructure Layer)
+Backend Core (API + Infrastructure)
 
 
 
@@ -12,115 +12,53 @@ Backend Core (API + Infrastructure Layer)
 
 
 
-\## 🧭 PHASE 2 — Backend Core
+\## PHASE 2 — Backend Core
 
 
 
-\### 🎯 Objective
+\### 🎯 Goal
 
-راه‌اندازی API پایدار، امن و مقیاس‌پذیر به‌عنوان هسته اصلی سیستم مالی
-
-
-
-\---
+ساخت API سرور و اتصال به دیتابیس
 
 
 
-\## ✅ Completed
+\### ✅ Done
 
+\- ساختار فولدرها ایجاد شد
 
+\- فایل‌های اولیه ایجاد شدند
 
-\### 🏗 Project Foundation
+\- express, cors, dotenv نصب شد
 
-\- ساختار Monorepo ایجاد شد
+\- nodemon نصب شد
 
-\- فولدرهای اصلی پروژه آماده شد:
+\- server.js ساخته شد
 
-&#x20; - backend/
+\- سرور روی پورت 5000 اجرا شد
 
-&#x20; - web/
-
-&#x20; - mobile/
-
-&#x20; - shared/
-
-&#x20; - docs/
-
-
-
-\### ⚙ Backend Setup
-
-\- Node.js project initialized
-
-\- Express.js server configured
-
-\- CORS middleware فعال شد
-
-\- dotenv برای مدیریت environment variables اضافه شد
-
-\- nodemon برای development workflow نصب شد
-
-\- server.js ساخته شد و اجرا شد
-
-\- API base endpoint تست شد (GET /)
-
-
-
-\### 🔐 Configuration
-
-\- .env فایل تنظیم شد (PORT, NODE\_ENV)
+\- .env تنظیم شد
 
 \- .gitignore اصلاح شد
 
-\- Git repository initialized
+\- Docker نصب شد
 
-\- Initial commit انجام شد
+\- PostgreSQL روی Docker اجرا شد (پورت 5432)
 
+\- Prisma نصب و تنظیم شد
 
+\- Migration اولیه انجام شد (User model)
 
-\### 🧪 Development Workflow
-
-\- nodemon برای auto-restart فعال شد
-
-\- scripts dev/start تنظیم شد
+\- Prisma Client generate شد
 
 
 
-\---
+\### ⏭ Next Step
 
+\- ساخت Auth routes (register/login)
 
+\- پیاده‌سازی JWT
 
-\## ⚙ Technical Stack (Backend)
-
-\- Node.js
-
-\- Express.js
-
-\- dotenv
-
-\- cors
-
-\- nodemon (dev)
-
-
-
-\---
-
-
-
-\## 🧱 Architecture Rules
-
-
-
-\- ❌ No business logic inside routes
-
-\- ❌ No direct database access (future layer)
-
-\- ❌ No hardcoded secrets
-
-\- ✔ Modular structure (routes / controllers / services)
-
-\- ✔ REST API design principle
+\- نصب bcrypt برای hash کردن password
 
 
 
@@ -130,13 +68,33 @@ Backend Core (API + Infrastructure Layer)
 
 \## 🔐 Environment Strategy
 
+\- .env فقط برای local development
+
+\- production env در server/cloud
+
+\- هیچ secret ای داخل Git نمی‌رود
 
 
-\- .env فقط برای development
 
-\- production secrets فقط روی server/cloud
+\---
 
-\- هیچ secret ای داخل Git ذخیره نمی‌شود
+
+
+\## 🧱 Tech Rules
+
+\- No business logic in routes
+
+\- Use service layer (future step)
+
+\- Env variables required for all secrets
+
+\- Database access only via Prisma
+
+\- All database queries must go through Prisma layer
+
+\- No direct SQL queries allowed
+
+\- API must be RESTful (for now)
 
 
 
@@ -146,41 +104,17 @@ Backend Core (API + Infrastructure Layer)
 
 \## 🧠 Architecture Decisions
 
+\- Monorepo Structure
 
+\- Backend: Node.js + Express
 
-\- Monorepo structure (web + mobile + backend)
+\- Database: PostgreSQL (Docker)
 
-\- Backend-first development approach
+\- ORM: Prisma v7
 
-\- Database: PostgreSQL (next phase)
+\- Web: Next.js
 
-\- ORM: Prisma (next phase)
-
-\- Web: Next.js (future)
-
-\- Mobile: React Native + Expo (future)
-
-
-
-\---
-
-
-
-\## 🚀 Product Vision
-
-
-
-\- 🌐 Web App
-
-\- 📱 Android App
-
-\- 📱 iOS App
-
-\- 🔐 Secure Authentication System
-
-\- ☁ Cloud Deployment Ready
-
-\- 📊 Scalable Financial Backend
+\- Mobile: React Native + Expo
 
 
 
@@ -188,61 +122,59 @@ Backend Core (API + Infrastructure Layer)
 
 
 
-\## 📋 Session History
+\## 🚀 Project Goals
+
+\- Web App
+
+\- Android App
+
+\- iOS App
+
+\- Secure Backend
+
+\- Cloud Ready
+
+\- Scalable architecture for future microservices migration
+
+
+
+\---
+
+
+
+\## 📋 Session Log
 
 
 
 \### Session 1 — Foundation Setup
 
-\- Project structure created
+\- تاریخ: 2026-05-11
 
-\- Git initialized
+\- ساختار پروژه ایجاد شد
 
-\- Docs system created
-
-\- Initial config files added
+\- Files changed: README.md, .gitignore, docs/progress.md
 
 
 
 \### Session 2 — Backend Core
 
-\- Express server created
+\- تاریخ: 2026-05-11
 
-\- Middleware setup completed
+\- express + nodemon نصب شد
 
-\- .env configured
+\- server.js ساخته و تست شد
 
-\- nodemon enabled
-
-\- API tested successfully
+\- Files changed: backend/src/server.js, backend/.env, backend/package.json
 
 
 
-\---
+\### Session 3 — Database Setup
 
+\- تاریخ: 2026-05-11
 
+\- Docker + PostgreSQL راه‌اندازی شد
 
-\## 📌 Current Status
+\- Prisma نصب و migrate شد
 
-🟢 Backend running successfully  
-
-🟡 Ready for Database layer (PostgreSQL + Prisma)
-
-
-
-\---
-
-
-
-\## ⏭ Next Phase
-
-\- PostgreSQL setup
-
-\- Prisma ORM setup
-
-\- Database schema design
-
-\- User model creation
-
-\- Auth system (JWT)
+\- Files changed: backend/prisma/schema.prisma, backend/prisma.config.ts, backend/.env
 

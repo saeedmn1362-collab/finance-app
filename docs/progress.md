@@ -26,39 +26,31 @@ Backend Core (API + Infrastructure)
 
 \- ساختار فولدرها ایجاد شد
 
-\- فایل‌های اولیه ایجاد شدند
-
-\- express, cors, dotenv نصب شد
-
-\- nodemon نصب شد
+\- express, cors, dotenv, nodemon نصب شد
 
 \- server.js ساخته شد
 
-\- سرور روی پورت 5000 اجرا شد
-
 \- .env تنظیم شد
 
-\- .gitignore اصلاح شد
+\- Docker + PostgreSQL راه‌اندازی شد
 
-\- Docker نصب شد
+\- Prisma 5 نصب و migrate شد
 
-\- PostgreSQL روی Docker اجرا شد (پورت 5432)
+\- Auth system کامل شد (register/login/JWT)
 
-\- Prisma نصب و تنظیم شد
+\- authMiddleware ساخته شد
 
-\- Migration اولیه انجام شد (User model)
-
-\- Prisma Client generate شد
+\- errorHandler و AppError ساخته شد
 
 
 
 \### ⏭ Next Step
 
-\- ساخت Auth routes (register/login)
+\- ساخت profile route (GET /api/user/profile)
 
-\- پیاده‌سازی JWT
+\- تست authMiddleware روی یک route محافظت شده
 
-\- نصب bcrypt برای hash کردن password
+\- شروع طراحی مدل‌های دیتابیس (accounts, transactions)
 
 
 
@@ -90,8 +82,6 @@ Backend Core (API + Infrastructure)
 
 \- Database access only via Prisma
 
-\- All database queries must go through Prisma layer
-
 \- No direct SQL queries allowed
 
 \- API must be RESTful (for now)
@@ -110,7 +100,7 @@ Backend Core (API + Infrastructure)
 
 \- Database: PostgreSQL (Docker)
 
-\- ORM: Prisma v7
+\- ORM: Prisma 5
 
 \- Web: Next.js
 
@@ -174,7 +164,21 @@ Backend Core (API + Infrastructure)
 
 \- Docker + PostgreSQL راه‌اندازی شد
 
-\- Prisma نصب و migrate شد
+\- Prisma 5 نصب و migrate شد
 
-\- Files changed: backend/prisma/schema.prisma, backend/prisma.config.ts, backend/.env
+\- Files changed: backend/prisma/schema.prisma, backend/.env
+
+
+
+\### Session 4 — Auth System
+
+\- تاریخ: 2026-05-12
+
+\- Register و Login با JWT پیاده‌سازی شد
+
+\- authMiddleware و errorHandler ساخته شد
+
+\- تست موفق register و login
+
+\- Files changed: backend/src/controllers/authController.js, backend/src/routes/authRoutes.js, backend/src/middleware/\*
 

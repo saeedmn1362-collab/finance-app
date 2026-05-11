@@ -1,10 +1,6 @@
-\# Progress Log
+\### 📌 Current Phase
 
-
-
-\## 📌 Current Phase
-
-Foundation Setup
+Backend Core Setup
 
 
 
@@ -12,13 +8,17 @@ Foundation Setup
 
 
 
-\## PHASE 1 — Project Foundation
+\## PHASE 2 — Backend Foundation
 
 
 
 \### 🎯 Goal
 
-ایجاد زیرساخت استاندارد پروژه برای توسعه Web + Mobile + Backend
+راه‌اندازی backend استاندارد و آماده برای API + Database + Auth
+
+
+
+\---
 
 
 
@@ -26,31 +26,15 @@ Foundation Setup
 
 \- ساختار فولدرها ایجاد شد
 
-\- فایل‌های اولیه ایجاد شدند (README, .gitignore, docs)
+\- فایل‌های اولیه ایجاد شدند
 
-\- README.md تکمیل شد
+\- express, cors, dotenv نصب شد
 
-\- .gitignore تکمیل شد
+\- nodemon نصب شد
 
+\- server.js ساخته شد
 
-
-\### 🔄 In Progress
-
-\- نصب Git
-
-\- آماده‌سازی محیط توسعه
-
-
-
-\### ⏭ Next Step
-
-\- git init
-
-\- اتصال پروژه به GitHub
-
-\- npm init (root)
-
-\- شروع PHASE 2 — Backend Core
+\- سرور روی پورت 5000 اجرا شد ✔
 
 
 
@@ -58,5 +42,41 @@ Foundation Setup
 
 
 
-\## 📁 Current Structure
+\### 🔄 In Progress
+
+\- ساختار backend (src architecture)
+
+
+
+\---
+
+
+
+\### ⏭ Next Step
+
+\- نصب Prisma
+
+\- نصب PostgreSQL
+
+\- طراحی دیتابیس (User Model)
+
+\- شروع Authentication (JWT)
+
+
+
+\---
+
+
+
+\## 📋 Session Log
+
+
+
+\### Session 2
+
+\- backend server setup انجام شد
+
+\- nodemon فعال شد
+
+\- اولین API تست شد (/ route)
 

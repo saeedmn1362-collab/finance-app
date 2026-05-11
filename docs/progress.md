@@ -42,15 +42,29 @@ Backend Core (API + Infrastructure)
 
 \- errorHandler و AppError ساخته شد
 
+\- طراحی کامل schema مالی انجام شد
+
+\- enums برای AccountType, TransactionType, PersonType اضافه شد
+
+\- مدل Transaction برای transfer/income/expense طراحی شد
+
+\- Decimal برای financial precision انتخاب شد
+
+\- migration به PostgreSQL با موفقیت انجام شد
+
+\- تصمیمات معماری در decisions.md ثبت شد
+
 
 
 \### ⏭ Next Step
 
 \- ساخت profile route (GET /api/user/profile)
 
-\- تست authMiddleware روی یک route محافظت شده
+\- ساخت account routes (CRUD)
 
-\- شروع طراحی مدل‌های دیتابیس (accounts, transactions)
+\- ساخت transaction routes (CRUD)
+
+\- ساخت category routes (CRUD)
 
 
 
@@ -181,4 +195,24 @@ Backend Core (API + Infrastructure)
 \- تست موفق register و login
 
 \- Files changed: backend/src/controllers/authController.js, backend/src/routes/authRoutes.js, backend/src/middleware/\*
+
+
+
+\### Session 5 — Database \& Financial Domain
+
+\- تاریخ: 2026-05-12
+
+\- طراحی کامل schema مالی انجام شد
+
+\- enums برای AccountType, TransactionType, PersonType اضافه شد
+
+\- مدل Transaction برای transfer/income/expense طراحی شد
+
+\- Decimal برای financial precision انتخاب شد
+
+\- migration به PostgreSQL با موفقیت انجام شد
+
+\- تصمیمات معماری در decisions.md ثبت شد
+
+\- Files changed: backend/prisma/schema.prisma, docs/decisions.md
 

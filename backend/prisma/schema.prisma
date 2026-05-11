@@ -7,11 +7,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountType {
+  CASH
+  BANK
+  WALLET
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  RECEIVABLE
+  PAYABLE
+}
+
+enum PersonType {
+  BORROWER
+  LENDER
+  CONTACT
+}
+
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  accounts     Account[]
+  transactions Transaction[]
+  categories   Category[]
+  persons      Person[]
+}
+
+model Account {
+  id               String        @id @default(cuid())
+  name             String
+  type             AccountType   @default(BANK)
+  initialBalance   Decimal       @default(0) @db.Decimal(18, 2)
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     Transaction[] @relation("AccountTransactions")
+  fromTransactions Transaction[] @relation("FromAccount")
+  toTransactions   Transaction[] @relation("ToAccount")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  parentId     String?
+  parent       Category?     @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]    @relation("CategoryTree")
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] @relation("CategoryTransactions")
+  createdAt    DateTime      @default(now())
+
+  @@unique([userId, name])
+}
+
+model Person {
+  id           String        @id @default(cuid())
+  name         String
+  type         PersonType    @default(CONTACT)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  type          TransactionType
+  amount        Decimal         @db.Decimal(18, 2)
+  description   String?
+  date          DateTime
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId     String?
+  account       Account?        @relation("AccountTransactions", fields: [accountId], references: [id])
+  fromAccountId String?
+  fromAccount   Account?        @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccountId   String?
+  toAccount     Account?        @relation("ToAccount", fields: [toAccountId], references: [id])
+  categoryId    String?
+  category      Category?       @relation("CategoryTransactions", fields: [categoryId], references: [id], onDelete: SetNull)
+  personId      String?
+  person        Person?         @relation(fields: [personId], references: [id])
+  createdAt     DateTime        @default(now())
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([userId, date])
+  @@index([categoryId])
 }

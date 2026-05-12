@@ -1,4 +1,85 @@
+سوالت خیلی مهمه 👌 و دقیقاً همون چیزی‌ه که فرق پروژه‌های آماتور و حرفه‌ای رو مشخص می‌کنه.
+
+تو الان اگر بخوای پروژه رو بدی به Claude (یا هر AI دیگه)، **نباید کل فایل‌ها رو بفرستی**. باید یک “Snapshot هوشمند پروژه” بدی.
+
+---
+
+# 🟢 بهترین چیزی که باید به هوش مصنوعی بدی
+
+فقط این 3 چیز:
+
+---
+
+# 1. 📌 GitHub Repo (مهم‌ترین)
+
+```text id="repo1"
+https://github.com/saeedmn1362-collab/finance-app
+```
+
+👉 این به AI کل کد و ساختار رو میده
+
+---
+
+# 2. 📌 Progress / Architecture Summary (خیلی مهم)
+
+همین فایل‌هایی که داری:
+
+```text id="docs1"
+docs/progress.md
+docs/decisions.md
+docs/roadmap.md
+```
+
+👉 این‌ها به AI می‌گن:
+
+* تا کجا رفتی
+* چرا این تصمیم‌ها رو گرفتی
+* مسیر پروژه چیه
+
+---
+
+# 3. 📌 هدف پروژه (خیلی کوتاه و واضح)
+
+این رو باید خودت به AI بدی:
+
+```md id="goal1"
+Project: Personal Finance Management System
+
+Goal:
+- Web + Mobile app for managing personal finances
+- Track income, expense, transfer
+- Multi-account system
+- JWT authentication
+- Scalable backend for future microservices
+
+Tech Stack:
+- Backend: Node.js + Express
+- DB: PostgreSQL + Prisma
+- Frontend: Next.js (future)
+- Mobile: React Native (future)
+```
+
+---
+
+# 🚀 اگر بخوای حرفه‌ای‌ترش کنی (خیلی مهم)
+
+به جای اینکه فقط repo بدی، اینو هم بده:
+
+---
+
+## 🧠 “AI
+
+
+
+
+
+
+
+
+
 دستور واقعی اینه:
+
+
 
 git log
 
@@ -46,7 +127,7 @@ git status
 هر کاری می‌کنی commit می‌زنی
 بعداً فقط git log می‌گیری
 
-D:\Projects\finance-app\backend
+D:\Projects\finance-app
 
 git add .
 git commit -m "update progress"

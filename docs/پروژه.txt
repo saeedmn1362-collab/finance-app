@@ -1,0 +1,122 @@
+🟢 📊 Project Report — Finance App
+📌 Project Name
+
+Personal Finance Management System
+
+🎯 هدف پروژه
+
+ساخت یک سیستم مدیریت مالی شخصی (Web + Mobile) برای:
+
+مدیریت حساب‌ها (Accounts)
+ثبت درآمد و هزینه (Transactions)
+انتقال بین حساب‌ها (Transfers)
+دسته‌بندی مالی (Categories)
+افراد مرتبط با تراکنش‌ها (Persons)
+احراز هویت امن (JWT)
+🧱 معماری کلی
+Backend:
+Node.js + Express
+PostgreSQL (Docker)
+Prisma ORM
+JWT Authentication
+Future:
+Web: Next.js
+Mobile: React Native + Expo
+🧩 فازهای پروژه
+🟢 PHASE 1 — Setup & Infrastructure (DONE)
+✅ انجام شده:
+ساخت ساختار پروژه (monorepo-like)
+نصب Express, dotenv, cors, nodemon
+تنظیم server.js
+تنظیم .env
+راه‌اندازی Git + GitHub
+🟢 PHASE 2 — Backend Core (DONE + ACTIVE DEBUG)
+🎯 هدف:
+
+ساخت API و اتصال به دیتابیس
+
+✅ انجام شده:
+Docker + PostgreSQL راه‌اندازی شد
+Prisma نصب و migrate شد
+طراحی کامل schema مالی
+تعریف مدل‌ها:
+Account
+Transaction
+Category (آماده)
+Person (آماده)
+Authentication کامل:
+register
+login
+JWT middleware
+error handling + AppError
+طراحی transaction system:
+INCOME
+EXPENSE
+TRANSFER
+⚠️ مشکلات/باگ‌های حل شده:
+مشکل auth middleware
+مشکل JWT verification
+error handling mismatch (AppError)
+route registration issues
+PowerShell API testing issues
+🟢 PHASE 3 — Accounts & Transactions API (DONE)
+✅ انجام شده:
+CRUD Accounts (basic)
+Create Transaction
+Transfer logic
+Balance calculation
+Transaction listing
+Protected routes implemented
+🧪 تست‌ها:
+ساخت کاربر جدید
+login با JWT
+ساخت حساب مالی
+ثبت income/expense
+انتقال بین حساب‌ها
+دریافت balance
+
+✔️ همه API ها کار می‌کنند
+
+🟡 PHASE 4 — Debug & Stabilization (CURRENT)
+⚠️ وضعیت فعلی:
+چند باگ مقطعی رفع شده:
+AppError constructor issue
+route mismatch
+middleware import issues
+API core functional است اما:
+نیاز به clean architecture دارد
+نیاز به refactor جزئی routes/middleware
+⏭ PHASE 5 — Next Planned Features
+profile endpoint (/api/user/profile)
+category system کامل
+person management
+service layer architecture
+validation layer (Zod/Joi)
+better error handling standardization
+🧠 Architecture Decisions (Summary)
+Prisma 5 (stable)
+Decimal برای مالی (precision بالا)
+Single Transaction model (no split tables)
+Balance computed (not stored)
+JWT-based auth
+REST API structure
+🚀 Current Status
+🟢 Backend:
+85% complete
+Core system working
+Authentication stable
+Transactions working
+🟡 Issues:
+minor refactoring needed
+consistency improvements
+route/middleware cleanup
+📌 Conclusion
+
+👉 پروژه تو الان در وضعیت:
+
+🟢 “Functional Backend MVP”
+
+یعنی:
+
+همه چیز کار می‌کند
+ولی هنوز production-ready نشده

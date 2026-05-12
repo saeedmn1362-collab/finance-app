@@ -241,4 +241,17 @@ Backend Core (API + Infrastructure)
 &#x20; - ترتیب اجرای middleware در Express
 
 \- وضعیت: debugging phase (core system هنوز functional است)
+### Session 7 — 2026-05-12 (Testing & Stabilization Phase)
+
+#### 🧪 Work Done Today
+- Fixed JWT authentication issues (token validation problems)
+- Debugged authMiddleware and route protection
+- Created new test user for isolated testing
+- Successfully tested account creation via API
+- Implemented full transaction flow testing:
+  - INCOME transaction tested
+  - EXPENSE transaction tested
+- Verified balance calculation endpoint
+- Created automated PowerShell test script (
+
 

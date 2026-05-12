@@ -216,3 +216,29 @@ Backend Core (API + Infrastructure)
 
 \- Files changed: backend/prisma/schema.prisma, docs/decisions.md
 
+
+
+\### Session 6 — Profile Endpoint Debugging
+
+\- تاریخ: 2026-05-12
+
+\- endpoint `/api/user/profile` ساخته شد
+
+\- authMiddleware به route متصل شد
+
+\- مشکل در authentication flow مشاهده شد:
+
+&#x20; - "توکن نامعتبر"
+
+&#x20; - یا "خطای سرور"
+
+\- در حال بررسی موارد زیر:
+
+&#x20; - JWT verification (secret / sign vs verify mismatch)
+
+&#x20; - req.user assignment در middleware
+
+&#x20; - ترتیب اجرای middleware در Express
+
+\- وضعیت: debugging phase (core system هنوز functional است)
+

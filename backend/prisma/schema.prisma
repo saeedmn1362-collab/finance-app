@@ -101,6 +101,7 @@ model Transaction {
   personId      String?
   person        Person?         @relation(fields: [personId], references: [id])
   createdAt     DateTime        @default(now())
+  deletedAt     DateTime?
 
   @@index([userId])
   @@index([accountId])

@@ -1,7 +1,3 @@
-id="zx4s2j"
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 module.exports = prisma;
-

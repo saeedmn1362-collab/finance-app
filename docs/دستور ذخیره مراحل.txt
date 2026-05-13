@@ -129,7 +129,7 @@ git status
 
 D:\Projects\finance-app
 
-git add .
+git add ../docs/progress.md
 git commit -m "update progress"
 git push
 

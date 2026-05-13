@@ -1,275 +1,191 @@
 const prisma = require("../prisma/client");
 
-
 // =========================
-// BUILD CATEGORY MAP
+// HELPERS
 // =========================
-const buildCategoryMap = (categories) => {
-  const map = {};
 
-  for (const cat of categories) {
-    map[cat.id] = cat;
-  }
-
-  return map;
-};
-
-
-// =========================
-// FIND ROOT CATEGORY
-// =========================
-const findRootCategory = (category, categoryMap) => {
+// پیدا کردن Root Category
+const getRootCategory = (category) => {
   let current = category;
 
-  while (current?.parentId) {
-    current = categoryMap[current.parentId];
+  while (current?.parent) {
+    current = current.parent;
   }
 
   return current;
 };
 
-
 // =========================
-// GET DASHBOARD SUMMARY
+// DASHBOARD SERVICE
 // =========================
-const getDashboardSummary = async (userId) => {
-
+const getDashboardData = async (userId) => {
   // =========================
-  // Accounts
+  // ACCOUNTS + BALANCE
   // =========================
   const accounts = await prisma.account.findMany({
     where: {
       userId,
       isArchived: false,
     },
-
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-
-  // =========================
-  // Recent Transactions
-  // =========================
-  const recentTransactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      deletedAt: null,
-    },
-
     include: {
-      category: true,
-      account: true,
-    },
-
-    orderBy: {
-      date: "desc",
-    },
-
-    take: 10,
-  });
-
-
-  // =========================
-  // All Transactions
-  // =========================
-  const allTransactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      deletedAt: null,
-    },
-
-    select: {
-      id: true,
-      type: true,
-      amount: true,
-      createdAt: true,
-      accountId: true,
-      categoryId: true,
+      transactions: {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          type: true,
+          amount: true,
+        },
+      },
     },
   });
 
-
-  // =========================
-  // Categories
-  // =========================
-  const categories = await prisma.category.findMany({
-    where: {
-      userId,
-    },
-  });
-
-  const categoryMap = buildCategoryMap(categories);
-
-
-  // =========================
-  // Income / Expense
-  // =========================
-  let income = 0;
-  let expense = 0;
-
-  for (const tx of allTransactions) {
-    const amount = Number(tx.amount);
-
-    if (tx.type === "INCOME") {
-      income += amount;
-    }
-
-    if (tx.type === "EXPENSE") {
-      expense += amount;
-    }
-  }
-
-
-  // =========================
-  // REAL ACCOUNT BALANCES
-  // =========================
-  const accountBalances = accounts.map((account) => {
-
+  const accountsWithBalance = accounts.map((account) => {
     let balance = Number(account.initialBalance);
 
-    for (const tx of allTransactions) {
-
-      if (tx.accountId !== account.id) {
-        continue;
-      }
-
+    for (const tx of account.transactions) {
       const amount = Number(tx.amount);
 
-      if (tx.type === "INCOME") {
-        balance += amount;
-      }
-
-      if (tx.type === "EXPENSE") {
-        balance -= amount;
-      }
+      if (tx.type === "INCOME") balance += amount;
+      if (tx.type === "EXPENSE") balance -= amount;
     }
 
     return {
       id: account.id,
       name: account.name,
       type: account.type,
+      currency: account.currency,
       balance,
     };
   });
 
+  // مرتب‌سازی حساب‌ها بر اساس موجودی
+  accountsWithBalance.sort((a, b) => b.balance - a.balance);
 
-  // =========================
-  // TOTAL BALANCE
-  // =========================
-  const totalBalance = accountBalances.reduce(
+  const totalBalance = accountsWithBalance.reduce(
     (sum, acc) => sum + acc.balance,
     0
   );
 
+  // =========================
+  // MONTHLY STATS
+  // =========================
+  const now = new Date();
+
+  const startOfMonth = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  );
+
+  const monthlyTransactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+      date: {
+        gte: startOfMonth,
+      },
+    },
+    select: {
+      type: true,
+      amount: true,
+    },
+  });
+
+  let incomeThisMonth = 0;
+  let expenseThisMonth = 0;
+
+  for (const tx of monthlyTransactions) {
+    const amount = Number(tx.amount);
+
+    if (tx.type === "INCOME") incomeThisMonth += amount;
+    if (tx.type === "EXPENSE") expenseThisMonth += amount;
+  }
 
   // =========================
-  // NET
+  // RECENT TRANSACTIONS (LIGHTWEIGHT)
   // =========================
-  const net = income - expense;
-
+  const recentTransactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      type: true,
+      amount: true,
+      date: true,
+      description: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
+      account: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      date: "desc",
+    },
+    take: 10,
+  });
 
   // =========================
   // EXPENSE BY ROOT CATEGORY
   // =========================
-  const expenseByCategoryMap = {};
+  const expenses = await prisma.transaction.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+      type: "EXPENSE",
+    },
+    include: {
+      category: {
+        include: {
+          parent: true,
+        },
+      },
+    },
+  });
 
-  for (const tx of allTransactions) {
+  const expenseMap = {};
 
-    if (tx.type !== "EXPENSE") {
-      continue;
+  for (const tx of expenses) {
+    if (!tx.category) continue;
+
+    const root = getRootCategory(tx.category);
+    const key = root?.name || "Unknown";
+
+    if (!expenseMap[key]) {
+      expenseMap[key] = 0;
     }
 
-    if (!tx.categoryId) {
-      continue;
-    }
-
-    const category = categoryMap[tx.categoryId];
-
-    if (!category) {
-      continue;
-    }
-
-    const root = findRootCategory(category, categoryMap);
-
-    const rootName = root?.name || "Other";
-
-    if (!expenseByCategoryMap[rootName]) {
-      expenseByCategoryMap[rootName] = 0;
-    }
-
-    expenseByCategoryMap[rootName] += Number(tx.amount);
+    expenseMap[key] += Number(tx.amount);
   }
 
-  const expenseByCategory = Object.entries(
-    expenseByCategoryMap
-  ).map(([name, amount]) => ({
-    name,
-    amount,
-  }));
-
-
-  // =========================
-  // MONTHLY SUMMARY
-  // =========================
-  const monthlyMap = {};
-
-  for (const tx of allTransactions) {
-
-    const date = new Date(tx.createdAt);
-
-    const monthKey =
-      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-    if (!monthlyMap[monthKey]) {
-      monthlyMap[monthKey] = {
-        income: 0,
-        expense: 0,
-      };
-    }
-
-    const amount = Number(tx.amount);
-
-    if (tx.type === "INCOME") {
-      monthlyMap[monthKey].income += amount;
-    }
-
-    if (tx.type === "EXPENSE") {
-      monthlyMap[monthKey].expense += amount;
-    }
-  }
-
-  const monthlySummary = Object.entries(monthlyMap).map(
-    ([month, values]) => ({
-      month,
-      income: values.income,
-      expense: values.expense,
-      net: values.income - values.expense,
+  const expenseByCategory = Object.entries(expenseMap).map(
+    ([category, total]) => ({
+      category,
+      total,
     })
   );
-
 
   // =========================
   // FINAL RESPONSE
   // =========================
   return {
     totalBalance,
-    income,
-    expense,
-    net,
-
-    accounts: accountBalances,
-
+    incomeThisMonth,
+    expenseThisMonth,
+    accounts: accountsWithBalance,
     recentTransactions,
-
     expenseByCategory,
-
-    monthlySummary,
   };
 };
 
-
 module.exports = {
-  getDashboardSummary,
+  getDashboardData,
 };

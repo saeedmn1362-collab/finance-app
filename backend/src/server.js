@@ -1,4 +1,3 @@
-```javascript
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -11,7 +10,8 @@ const userRoutes = require("./routes/userRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes"); // ✅ NEW
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const reportsRoutes = require("./routes/reportsRoutes"); // ✅ REPORTS
 
 // =========================
 // ⚙️ Middleware
@@ -21,7 +21,7 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 
 // =========================
-// 🌐 CORS CONFIG
+// 🌐 CORS
 // =========================
 app.use(
   cors({
@@ -39,22 +39,18 @@ app.use(express.json());
 // 🔐 API ROUTES
 // =========================
 app.use("/api/auth", authRoutes);
-
 app.use("/api/user", userRoutes);
-
 app.use("/api/accounts", accountRoutes);
-
 app.use("/api/transactions", transactionRoutes);
-
 app.use("/api/categories", categoryRoutes);
-
-app.use("/api/dashboard", dashboardRoutes); // ✅ NEW
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/reports", reportsRoutes); // ✅ REPORTS ACTIVE
 
 // =========================
 // ❤️ HEALTH CHECK
 // =========================
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "Finance API is running 🚀",
     version: "1.0.0",
@@ -62,7 +58,7 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// ❌ 404 HANDLER
+// ❌ 404
 // =========================
 app.use((req, res) => {
   res.status(404).json({
@@ -72,7 +68,7 @@ app.use((req, res) => {
 });
 
 // =========================
-// 🚨 GLOBAL ERROR HANDLER
+// 🚨 ERROR HANDLER
 // =========================
 app.use(errorHandler);
 
@@ -86,4 +82,3 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-```

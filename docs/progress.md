@@ -254,4 +254,123 @@ Backend Core (API + Infrastructure)
 - Verified balance calculation endpoint
 - Created automated PowerShell test script (
 
+این باگ رو دارم
+PS D:\Projects\finance-app\backend> npm run dev
+
+> backend@1.0.0 dev
+> nodemon src/server.js
+
+[nodemon] 3.1.14
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting `node src/server.js`
+D:\Projects\finance-app\backend\src\server.js:85
+  console.log(`🚀 Server running on port ${PORT}`);
+               ^
+
+SyntaxError: Invalid or unexpected token
+    at wrapSafe (node:internal/modules/cjs/loader:1763:18)
+    at Module._compile (node:internal/modules/cjs/loader:1804:20)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.15.0
+[nodemon] app crashed - waiting for file changes before starting...
+
+مشکل رو حل کردم و داشبوردها و هم ساختیم و تست های زیر هم گرفتیم
+PS D:\Projects\finance-app\backend> $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXAzcjM0eWkwMDAwNzUzOGZpMmExZGFpIiwiaWF0IjoxNzc4NjU4MDgxLCJleHAiOjE3NzkyNjI4ODF9.ae-gcFGFGlodloHvM4uoBy-NE6TliCSNufAiSzSDQ6g"
+PS D:\Projects\finance-app\backend> $headers = @{ Authorization = "Bearer $token" }
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/dashboard" `
+>> -Method GET `
+>> -Headers $headers
+
+success message               data
+------- -------               ----
+   True Dashboard data loaded @{totalBalance=1000; incomeThisMonth=1000; expenseThisMonth=0; accounts=System.Object[...
+
+
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/accounts" `
+>> -Method GET `
+>> -Headers $headers
+
+success message                       count data
+------- -------                       ----- ----
+   True Accounts fetched successfully     1 {@{id=cmp3rk8qs0002xzbwlxmywk8i; name=Main Wallet; type=BANK; currency=U...
+
+
+PS D:\Projects\finance-app\backend> $body = @{
+>>     name = "Cash Wallet"
+>>     type = "CASH"
+>>     currency = "USD"
+>>     initialBalance = 500
+>> } | ConvertTo-Json
+PS D:\Projects\finance-app\backend>
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/accounts" `
+>> -Method POST `
+>> -Body $body `
+>> -ContentType "application/json" `
+>> -Headers $headers
+
+success message                      data
+------- -------                      ----
+   True Account created successfully @{id=cmp3ruht70009xzbw8r58b739; name=Cash Wallet; type=CASH; currency=USD; init...
+
+
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/categories" `
+>> -Method GET `
+>> -Headers $headers
+
+message           data
+-------           ----
+Categories loaded {@{id=cmp3rkqtv0006xzbw4571li47; name=Food; type=EXPENSE; color=; icon=; isArchived=False; deleted...
+
+
+PS D:\Projects\finance-app\backend> $body = @{
+>>     name = "Food"
+>>     type = "EXPENSE"
+>> } | ConvertTo-Json
+PS D:\Projects\finance-app\backend>
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/categories" `
+>> -Method POST `
+>> -Body $body `
+>> -ContentType "application/json" `
+>> -Headers $headers
+Invoke-RestMethod : {"message":"Category already exists"}
+At line:1 char:1
++ Invoke-RestMethod `
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebExc
+   eption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/categories/tree" `
+>> -Method GET `
+>> -Headers $headers
+
+message              data
+-------              ----
+Category tree loaded {@{id=cmp3rkqtv0006xzbw4571li47; name=Food; type=EXPENSE; color=; icon=; parentId=; isArchived=...
+
+
+PS D:\Projects\finance-app\backend> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/api/transactions" `
+>> -Method GET `
+>> -Headers $headers
+
+message        count transactions
+-------        ----- ------------
+لیست تراکنش‌ها     2 {@{id=cmp3ruhtc000bxzbwzua07r20; type=INCOME; amount=500; description=Initial balance; date=202...
+
+
+PS D:\Projects\finance-app\backend>
 

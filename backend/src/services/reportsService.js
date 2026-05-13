@@ -28,7 +28,7 @@ const findRootCategory = (category, map) => {
 /**
  * 📊 MONTHLY REPORT (FINAL)
  */
-async function getMonthlyReport(userId, year, month) {
+async function getMonthlyReport(userId, year, month, page = 1, limit = 50) {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0);
 
@@ -46,7 +46,6 @@ async function getMonthlyReport(userId, year, month) {
       date: { gte: startDate, lte: endDate },
     },
     include: { category: true },
-    orderBy: { date: "asc" },
   });
 
   let income = 0;
@@ -73,8 +72,12 @@ async function getMonthlyReport(userId, year, month) {
     if (tx.type === "EXPENSE") balance -= amount;
   }
 
-  // sort transactions (safety)
-  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  // ⭐ Sort اصلی + Sort ثانویه بر اساس ID
+  transactions.sort((a, b) => {
+    const d = new Date(a.date) - new Date(b.date);
+    if (d !== 0) return d;
+    return a.id.localeCompare(b.id);
+  });
 
   for (const tx of transactions) {
     const amount = Number(tx.amount || 0);
@@ -110,6 +113,12 @@ async function getMonthlyReport(userId, year, month) {
   const savingsRate =
     income > 0 ? Number(((net / income) * 100).toFixed(2)) : 0;
 
+  // ⭐ Pagination
+  const start = (page - 1) * limit;
+  const end = start + limit;
+
+  const paginatedRunningBalance = runningBalance.slice(start, end);
+
   return {
     period: { year, month },
     summary: {
@@ -118,7 +127,13 @@ async function getMonthlyReport(userId, year, month) {
       net,
       savingsRate,
     },
-    runningBalance,
+    runningBalance: paginatedRunningBalance,
+    pagination: {
+      page,
+      limit,
+      total: runningBalance.length,
+      pages: Math.ceil(runningBalance.length / limit),
+    },
     expenseByCategory: Object.values(expenseByCategory),
     transactionCount: transactions.length,
   };

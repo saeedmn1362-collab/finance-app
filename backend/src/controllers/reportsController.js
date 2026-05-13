@@ -10,6 +10,9 @@ async function getMonthlyReport(req, res, next) {
     const year = Number(req.query.year);
     const month = Number(req.query.month);
 
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 50);
+
     // Validation حرفه‌ای
     if (
       Number.isNaN(year) ||
@@ -25,7 +28,13 @@ async function getMonthlyReport(req, res, next) {
       });
     }
 
-    const data = await reportsService.getMonthlyReport(userId, year, month);
+    const data = await reportsService.getMonthlyReport(
+      userId,
+      year,
+      month,
+      page,
+      limit
+    );
 
     return res.status(200).json({
       success: true,

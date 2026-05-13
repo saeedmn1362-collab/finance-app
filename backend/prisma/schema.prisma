@@ -178,31 +178,27 @@ model Transaction {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   accountId String?
-
   account Account? @relation("AccountTransactions", fields: [accountId], references: [id])
 
   fromAccountId String?
-
   fromAccount Account? @relation("FromAccount", fields: [fromAccountId], references: [id])
 
   toAccountId String?
-
   toAccount Account? @relation("ToAccount", fields: [toAccountId], references: [id])
 
   categoryId String?
-
   category Category? @relation("CategoryTransactions", fields: [categoryId], references: [id], onDelete: SetNull)
 
   personId String?
-
   person Person? @relation(fields: [personId], references: [id])
 
   createdAt DateTime @default(now())
 
   deletedAt DateTime?
 
+  // ⭐ Indexهای مهم برای سرعت گزارش‌گیری
   @@index([userId])
-  @@index([userId, date])
+  @@index([userId, date])     // ← مهم‌ترین index برای گزارش ماهانه/سالانه
   @@index([userId, type])
   @@index([userId, deletedAt])
   @@index([accountId])

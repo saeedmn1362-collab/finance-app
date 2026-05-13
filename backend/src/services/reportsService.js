@@ -2,7 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
- * 🧠 Build category map
+ * 🧠 Build category map (future-proof for hierarchy)
  */
 const buildCategoryCache = (categories) => {
   const map = {};
@@ -11,7 +11,7 @@ const buildCategoryCache = (categories) => {
 };
 
 /**
- * 🧠 Find root category
+ * 🧠 Find root category (future hierarchy support)
  */
 const findRootCategory = (category, map) => {
   if (!category) return null;
@@ -26,161 +26,144 @@ const findRootCategory = (category, map) => {
 };
 
 /**
- * 📊 MONTHLY REPORT (FINAL)
+ * 📊 MONTHLY REPORT — ENTERPRISE VERSION
  */
 async function getMonthlyReport(userId, year, month, page = 1, limit = 50) {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0);
 
-  const categories = await prisma.category.findMany({
-    where: { userId },
-    select: { id: true, name: true, parentId: true },
-  });
-
-  const categoryMap = buildCategoryCache(categories);
-
-  const transactions = await prisma.transaction.findMany({
+  // ⭐ 1) Global summary (not paginated)
+  const summaryAgg = await prisma.transaction.groupBy({
+    by: ["type"],
+    _sum: { amount: true },
     where: {
       userId,
       deletedAt: null,
-      date: { gte: startDate, lte: endDate },
-    },
-    include: { category: true },
+      date: { gte: startDate, lte: endDate }
+    }
   });
 
   let income = 0;
   let expense = 0;
 
-  const expenseByCategory = {};
-  const runningBalance = [];
+  summaryAgg.forEach((row) => {
+    const amount = Number(row._sum.amount || 0);
+    if (row.type === "INCOME") income += amount;
+    if (row.type === "EXPENSE") expense += amount;
+  });
 
-  // previous balance
-  const previous = await prisma.transaction.findMany({
+  const net = income - expense;
+  const savingsRate = income > 0 ? Number(((net / income) * 100).toFixed(2)) : 0;
+
+  // ⭐ 2) Previous balance (aggregate, ultra-fast)
+  const prevAgg = await prisma.transaction.groupBy({
+    by: ["type"],
+    _sum: { amount: true },
     where: {
       userId,
       deletedAt: null,
-      date: { lt: startDate },
+      date: { lt: startDate }
+    }
+  });
+
+  let previousBalance = 0;
+
+  prevAgg.forEach((row) => {
+    const amount = Number(row._sum.amount || 0);
+    if (row.type === "INCOME") previousBalance += amount;
+    if (row.type === "EXPENSE") previousBalance -= amount;
+  });
+
+  // ⭐ 3) Paginated runningBalance (DB-level)
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+      date: { gte: startDate, lte: endDate }
     },
-    select: { type: true, amount: true },
+    include: { category: true },
+    orderBy: [
+      { date: "asc" },
+      { id: "asc" }
+    ],
+    skip: (page - 1) * limit,
+    take: limit
   });
 
-  let balance = 0;
-
-  for (const tx of previous) {
-    const amount = Number(tx.amount || 0);
-    if (tx.type === "INCOME") balance += amount;
-    if (tx.type === "EXPENSE") balance -= amount;
-  }
-
-  // ⭐ Sort اصلی + Sort ثانویه بر اساس ID
-  transactions.sort((a, b) => {
-    const d = new Date(a.date) - new Date(b.date);
-    if (d !== 0) return d;
-    return a.id.localeCompare(b.id);
+  // ⭐ 4) Total count for pagination
+  const totalTransactions = await prisma.transaction.count({
+    where: {
+      userId,
+      deletedAt: null,
+      date: { gte: startDate, lte: endDate }
+    }
   });
+
+  // ⭐ 5) Build running balance only for this page
+  let balance = previousBalance;
+  const runningBalance = [];
 
   for (const tx of transactions) {
     const amount = Number(tx.amount || 0);
-
-    if (tx.type === "INCOME") income += amount;
-    if (tx.type === "EXPENSE") expense += amount;
 
     balance += tx.type === "INCOME" ? amount : -amount;
 
     runningBalance.push({
       id: tx.id,
       date: tx.date,
-      balance,
+      balance
     });
-
-    if (tx.type === "EXPENSE" && tx.categoryId) {
-      const cat = categoryMap[tx.categoryId] || null;
-      const root = findRootCategory(cat, categoryMap);
-
-      const key = root?.id || "unknown";
-      const name = root?.name || "Other";
-
-      if (!expenseByCategory[key]) {
-        expenseByCategory[key] = { categoryId: key, name, total: 0 };
-      }
-
-      expenseByCategory[key].total += amount;
-    }
   }
 
-  const net = income - expense;
+  // ⭐ 6) Expense by category (global + root-aware)
+  const categories = await prisma.category.findMany({
+    where: { userId },
+    select: { id: true, name: true, parentId: true }
+  });
 
-  const savingsRate =
-    income > 0 ? Number(((net / income) * 100).toFixed(2)) : 0;
+  const categoryMap = buildCategoryCache(categories);
 
-  // ⭐ Pagination
-  const start = (page - 1) * limit;
-  const end = start + limit;
-
-  const paginatedRunningBalance = runningBalance.slice(start, end);
-
-  return {
-    period: { year, month },
-    summary: {
-      income,
-      expense,
-      net,
-      savingsRate,
-    },
-    runningBalance: paginatedRunningBalance,
-    pagination: {
-      page,
-      limit,
-      total: runningBalance.length,
-      pages: Math.ceil(runningBalance.length / limit),
-    },
-    expenseByCategory: Object.values(expenseByCategory),
-    transactionCount: transactions.length,
-  };
-}
-
-/**
- * 📊 YEARLY REPORT (FINAL)
- */
-async function getYearlyReport(userId, year) {
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
-
-  const transactions = await prisma.transaction.findMany({
+  const expenseAgg = await prisma.transaction.groupBy({
+    by: ["categoryId"],
+    _sum: { amount: true },
     where: {
       userId,
       deletedAt: null,
-      date: { gte: startDate, lte: endDate },
-    },
-    select: { type: true, amount: true, date: true },
+      type: "EXPENSE",
+      date: { gte: startDate, lte: endDate }
+    }
   });
 
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    month: i + 1,
-    income: 0,
-    expense: 0,
-    net: 0,
-    savingsRate: 0,
-  }));
+  const expenseByCategory = [];
 
-  for (const tx of transactions) {
-    const m = new Date(tx.date).getMonth();
-    const amount = Number(tx.amount || 0);
+  for (const row of expenseAgg) {
+    const cat = categoryMap[row.categoryId];
+    if (!cat) continue;
 
-    if (tx.type === "INCOME") months[m].income += amount;
-    if (tx.type === "EXPENSE") months[m].expense += amount;
+    const root = findRootCategory(cat, categoryMap);
+
+    expenseByCategory.push({
+      categoryId: root?.id || cat.id,
+      name: root?.name || cat.name,
+      total: Number(row._sum.amount || 0)
+    });
   }
 
-  months.forEach((m) => {
-    m.net = m.income - m.expense;
-    m.savingsRate =
-      m.income > 0 ? Number(((m.net / m.income) * 100).toFixed(2)) : 0;
-  });
-
-  return months;
+  return {
+    period: { year, month },
+    summary: { income, expense, net, savingsRate },
+    runningBalance,
+    pagination: {
+      page,
+      limit,
+      total: totalTransactions,
+      pages: Math.ceil(totalTransactions / limit)
+    },
+    expenseByCategory,
+    transactionCount: totalTransactions
+  };
 }
 
 module.exports = {
-  getMonthlyReport,
-  getYearlyReport,
+  getMonthlyReport
 };

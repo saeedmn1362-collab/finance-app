@@ -6,6 +6,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 10000,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,8 +17,10 @@ const api = axios.create({
 // =========================
 api.interceptors.request.use(
   (config) => {
+
     // ✅ SSR Safe
     if (typeof window !== "undefined") {
+
       const token = localStorage.getItem("token");
 
       if (token) {
@@ -27,6 +30,7 @@ api.interceptors.request.use(
 
     return config;
   },
+
   (error) => {
     return Promise.reject({
       message: error.message || "Request Error",
@@ -40,29 +44,35 @@ api.interceptors.request.use(
 // 🚨 Response Interceptor
 // =========================
 api.interceptors.response.use(
+
   (response) => response,
 
   async (error) => {
+
     const status = error.response?.status;
 
     // =========================
     // 🔐 Unauthorized
     // =========================
-    if (status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
+    if (
+      status === 401 &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.includes("/login")
+    ) {
 
-        // 🚀 Future:
-        // refresh token logic here
+      localStorage.removeItem("token");
 
-        window.location.href = "/login";
-      }
+      // 🚀 Future:
+      // refresh token logic here
+
+      window.location.href = "/login";
     }
 
     // =========================
     // 📦 Normalize Error
     // =========================
     return Promise.reject({
+
       message:
         error.response?.data?.message ||
         error.message ||

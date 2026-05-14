@@ -1,0 +1,14 @@
+{
+  "checking": "Checking authentication...",
+  "no_account": "Don't have an account?",
+  "register": "Register",
+  "login": "Login",
+  "login_title": "Login",
+  "login_subtitle": "Smart finance management",
+  "email": "Email",
+  "password": "Password",
+  "fill_all_fields": "Please fill all fields",
+  "invalid_email": "Invalid email",
+  "login_failed": "Login failed",
+  "loading": "Loading..."
+}

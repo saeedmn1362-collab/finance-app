@@ -1,7 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+export default {
+  locales: ["fa", "en"],
+  defaultLocale: "fa",
+  localePrefix: "always"
 };
-
-export default nextConfig;

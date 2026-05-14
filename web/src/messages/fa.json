@@ -1,0 +1,14 @@
+{
+  "checking": "در حال بررسی ورود...",
+  "no_account": "حساب ندارید؟",
+  "register": "ثبت‌نام",
+  "login": "ورود",
+  "login_title": "ورود به حساب",
+  "login_subtitle": "مدیریت مالی حرفه‌ای",
+  "email": "ایمیل",
+  "password": "رمز عبور",
+  "fill_all_fields": "لطفاً همه فیلدها را پر کنید",
+  "invalid_email": "ایمیل معتبر نیست",
+  "login_failed": "ورود ناموفق بود",
+  "loading": "در حال ورود..."
+}

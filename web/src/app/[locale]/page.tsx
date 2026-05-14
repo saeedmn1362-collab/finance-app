@@ -1,16 +1,27 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
+
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useTranslations } from "next-intl";
 
 export default function HomePage() {
-  const { data, isLoading, error } = useDashboard();
+  const locale = useLocale();
+
+  const checked = useAuthGuard(`/${locale}/login`);
+
   const t = useTranslations();
+
+  // همیشه اجرا شود
+  const { data, isLoading, error } = useDashboard();
+
+  // فقط render را کنترل کن
+  if (!checked) return null;
 
   if (isLoading) {
     return (
       <main className="p-10">
-        <h1>{t("loading") || "Loading..."}</h1>
+        <h1>{t("loading")}</h1>
       </main>
     );
   }
@@ -19,7 +30,7 @@ export default function HomePage() {
     return (
       <main className="p-10">
         <h1 className="text-red-500">
-          {t("error") || "Error loading dashboard"}
+          Error loading dashboard
         </h1>
       </main>
     );
@@ -28,28 +39,48 @@ export default function HomePage() {
   return (
     <main className="p-10 space-y-6">
       <h1 className="text-4xl font-bold">
-        {t("dashboard") || "Finance Dashboard 🚀"}
+        Finance Dashboard 🚀
       </h1>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="border rounded-xl p-5">
-          <h2 className="text-gray-500">{t("total_balance")}</h2>
-          <p className="text-3xl font-bold">${data?.totalBalance}</p>
+          <h2 className="text-gray-500">
+            {t("total_balance")}
+          </h2>
+
+          <p className="text-3xl font-bold">
+            ${data?.totalBalance}
+          </p>
         </div>
 
         <div className="border rounded-xl p-5">
-          <h2 className="text-gray-500">{t("income")}</h2>
-          <p className="text-3xl font-bold">${data?.incomeThisMonth}</p>
+          <h2 className="text-gray-500">
+            {t("income")}
+          </h2>
+
+          <p className="text-3xl font-bold">
+            ${data?.incomeThisMonth}
+          </p>
         </div>
 
         <div className="border rounded-xl p-5">
-          <h2 className="text-gray-500">{t("expense")}</h2>
-          <p className="text-3xl font-bold">${data?.expenseThisMonth}</p>
+          <h2 className="text-gray-500">
+            {t("expense")}
+          </h2>
+
+          <p className="text-3xl font-bold">
+            ${data?.expenseThisMonth}
+          </p>
         </div>
 
         <div className="border rounded-xl p-5">
-          <h2 className="text-gray-500">{t("accounts")}</h2>
-          <p className="text-3xl font-bold">{data?.accounts?.length || 0}</p>
+          <h2 className="text-gray-500">
+            {t("accounts")}
+          </h2>
+
+          <p className="text-3xl font-bold">
+            {data?.accounts?.length || 0}
+          </p>
         </div>
       </div>
     </main>

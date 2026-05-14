@@ -10,5 +10,11 @@
   "fill_all_fields": "لطفاً همه فیلدها را پر کنید",
   "invalid_email": "ایمیل معتبر نیست",
   "login_failed": "ورود ناموفق بود",
-  "loading": "در حال ورود..."
+  "loading": "در حال ورود...",
+
+  "dashboard": "داشبورد",
+  "total_balance": "موجودی کل",
+  "income": "درآمد",
+  "expense": "هزینه",
+  "accounts": "حساب‌ها"
 }

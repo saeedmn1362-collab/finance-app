@@ -1,87 +1,39 @@
 import axios from "axios";
 
-// =========================
-// 🌐 Axios Instance
-// =========================
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000,
-
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api",
 });
 
-// =========================
-// 🔐 Request Interceptor
-// =========================
-api.interceptors.request.use(
-  (config) => {
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
 
-    // ✅ SSR Safe
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+
+  (error) => {
     if (typeof window !== "undefined") {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
 
-      const token = localStorage.getItem("token");
+        const locale =
+          window.location.pathname.split("/")[1] || "fa";
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        window.location.assign(`/${locale}/login`);
       }
     }
 
-    return config;
-  },
-
-  (error) => {
-    return Promise.reject({
-      message: error.message || "Request Error",
-      status: error.response?.status || 500,
-      data: error.response?.data || null,
-    });
-  }
-);
-
-// =========================
-// 🚨 Response Interceptor
-// =========================
-api.interceptors.response.use(
-
-  (response) => response,
-
-  async (error) => {
-
-    const status = error.response?.status;
-
-    // =========================
-    // 🔐 Unauthorized
-    // =========================
-    if (
-      status === 401 &&
-      typeof window !== "undefined" &&
-      !window.location.pathname.includes("/login")
-    ) {
-
-      localStorage.removeItem("token");
-
-      // 🚀 Future:
-      // refresh token logic here
-
-      window.location.href = "/login";
-    }
-
-    // =========================
-    // 📦 Normalize Error
-    // =========================
-    return Promise.reject({
-
-      message:
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong",
-
-      status: status || 500,
-
-      data: error.response?.data || null,
-    });
+    return Promise.reject(error);
   }
 );
 

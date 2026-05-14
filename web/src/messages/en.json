@@ -10,5 +10,11 @@
   "fill_all_fields": "Please fill all fields",
   "invalid_email": "Invalid email",
   "login_failed": "Login failed",
-  "loading": "Loading..."
+  "loading": "Loading...",
+
+  "dashboard": "Dashboard",
+  "total_balance": "Total Balance",
+  "income": "Income",
+  "expense": "Expense",
+  "accounts": "Accounts"
 }

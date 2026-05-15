@@ -16,5 +16,12 @@
   "total_balance": "موجودی کل",
   "income": "درآمد",
   "expense": "هزینه",
-  "accounts": "حساب‌ها"
+  "accounts": "حساب‌ها",
+
+  "navbar": {
+    "user": "کاربر",
+    "profile": "پروفایل",
+    "settings": "تنظیمات",
+    "logout": "خروج"
+  }
 }

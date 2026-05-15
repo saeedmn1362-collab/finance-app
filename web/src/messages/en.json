@@ -16,5 +16,12 @@
   "total_balance": "Total Balance",
   "income": "Income",
   "expense": "Expense",
-  "accounts": "Accounts"
+  "accounts": "Accounts",
+
+  "navbar": {
+    "user": "User",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
 }

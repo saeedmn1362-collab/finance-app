@@ -129,10 +129,30 @@ git status
 
 D:\Projects\finance-app
 
+
+git add .
+git commit -m "feat: improve auth flow and frontend architecture"
+git push
+
+tree D:\Projects\finance-app\web\src /f
+
+
 git add ../docs/progress.md
 git commit -m "update progress"
 git push
 
+
+cd D:\Projects\finance-app
+git add .
+git commit -m "fix: restore prisma client bridge and remove duplicate files"
+git push
+
+
+
+tree D:\Projects\finance-app\backend\src /f
+
+cd D:\Projects\finance-app\web
+npm run dev
 
 
 

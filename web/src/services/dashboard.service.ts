@@ -1,20 +1,45 @@
 import api from "@/lib/api";
 
 // =========================
-// 📊 Dashboard Service (Enterprise Version)
+// Types
 // =========================
-export async function getDashboard(params = {}) {
-  try {
-    const res = await api.get("/dashboard", { params });
+type DashboardParams = Record<string, string | number | boolean>;
 
-    // 🔥 همیشه فقط دادهٔ خالص برگردان
-    return res.data?.data || null;
-  } catch (error) {
-    // ❗ خطا همیشه normalize شده است (به لطف Axios Client)
+type NormalizedError = {
+  message: string;
+  status: number;
+  data: unknown;
+};
+
+// =========================
+// 📊 Dashboard Service
+// =========================
+export async function getDashboard(
+  params: DashboardParams = {}
+) {
+  try {
+    const res = await api.get("/dashboard", {
+      params,
+    });
+
+    // ✅ همیشه فقط data خالص
+    return res.data?.data ?? null;
+  } catch (error: unknown) {
+    // ✅ Safe Error Normalization
+    if (typeof error === "object" && error !== null) {
+      const err = error as Partial<NormalizedError>;
+
+      throw {
+        message: err.message ?? "Unknown error",
+        status: err.status ?? 500,
+        data: err.data ?? null,
+      } satisfies NormalizedError;
+    }
+
     throw {
-      message: error.message,
-      status: error.status,
-      data: error.data,
-    };
+      message: "Unknown error",
+      status: 500,
+      data: null,
+    } satisfies NormalizedError;
   }
 }

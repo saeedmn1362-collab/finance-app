@@ -1,102 +1,117 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import { useLocale } from "next-intl";
-import { Suspense } from "react";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useRouter, usePathname } from "next/navigation";
+
+import Navbar from "@/components/layout/Navbar";
+import { Sidebar } from "@/components/layout/Sidebar";
+import MobileDrawer from "@/components/layout/MobileDrawer";
+import PageTransition from "@/components/transition/PageTransition";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { useLogout } from "@/hooks/useLogout";
+import { useDrawer } from "@/hooks/useDrawer";
+import { isRTL } from "@/lib/isRTL";
 
-const navItems = [
-  { href: "", label: "داشبورد" },
-  { href: "/accounts", label: "حساب‌ها" },
-  { href: "/transactions", label: "تراکنش‌ها" },
-  { href: "/categories", label: "دسته‌بندی‌ها" },
-  { href: "/settings", label: "تنظیمات" },
-];
+import CommandPalette from "@/components/command/CommandPalette";
+import { useCommandPalette } from "@/hooks/useCommandPalette";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
 
-  const checked = useAuthGuard(`/${locale}/login`);
+  const logout = useLogout();
 
-  // ⭐ UX بهتر از Loading ساده
-  if (checked === null) {
-    return (
-      <div className="p-10">
-        <Skeleton className="h-6 w-32" />
-      </div>
-    );
-  }
+  const [status, setStatus] =
+    useState<"loading" | "auth" | "unauth">("loading");
 
-  if (checked === false) {
-    return null;
-  }
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.replace(`/${locale}/login`);
-    router.refresh();
-  };
+  const rtl = isRTL(locale);
+
+  // AUTH CHECK
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setStatus("unauth");
+      router.replace(`/${locale}/login`);
+      return;
+    }
+
+    setStatus("auth");
+  }, [locale, router]);
+
+  // CLOSE DRAWER ON ROUTE CHANGE
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // CLOSE COMMAND PALETTE ON ROUTE CHANGE
+  useEffect(() => {
+    setCommandOpen(false);
+  }, [pathname]);
+
+  // Drawer Pro Hook (ESC + scroll lock)
+  useDrawer(drawerOpen, () => setDrawerOpen(false));
+
+  // Command Palette Hotkey (Ctrl + K)
+  useCommandPalette(() => {
+    setDrawerOpen(false);
+    setCommandOpen(true);
+  });
+
+  if (status === "unauth") return null;
 
   return (
     <div
-      className="flex min-h-screen"
-      dir={locale === "fa" ? "rtl" : "ltr"}
+      dir={rtl ? "rtl" : "ltr"}
+      className={`flex min-h-screen ${rtl ? "flex-row-reverse" : "flex-row"}`}
     >
-      {/* Sidebar */}
-      <aside className="w-64 bg-emerald-700 text-white flex flex-col p-6 gap-4">
-        <h2 className="text-2xl font-extrabold mb-6">
-          💰 حساب من
-        </h2>
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex">
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          isRtl={rtl}
+          onToggleCollapse={() => setSidebarCollapsed((p) => !p)}
+          onLogout={logout}
+        />
+      </div>
 
-        <nav className="flex flex-col gap-2">
-          {navItems.map((item) => {
-            const href = `/${locale}${item.href}`;
-            const isActive =
-              pathname === href ||
-              pathname.startsWith(href + "/");
+      {/* Mobile Drawer Pro */}
+      <MobileDrawer
+        open={drawerOpen}
+        rtl={rtl}
+        onClose={() => setDrawerOpen(false)}
+        logout={logout}
+      />
 
-            return (
-              <Link
-                key={item.href}
-                href={href}
-                className={`rounded-xl px-4 py-2 transition font-medium ${
-                  isActive
-                    ? "bg-white text-emerald-700 font-bold"
-                    : "hover:bg-emerald-600"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+      {/* MAIN */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <Navbar
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((p) => !p)}
+          onOpenDrawer={() => setDrawerOpen(true)}
+        />
 
-        {/* Logout */}
-        <div className="mt-auto">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 rounded-xl px-4 py-2 transition text-white font-bold"
-          >
-            خروج
-          </button>
-        </div>
-      </aside>
+        <CommandPalette
+          open={commandOpen}
+          onClose={() => setCommandOpen(false)}
+        />
 
-      {/* Main */}
-      <main className="flex-1 bg-gray-50 dark:bg-gray-900 p-8">
-        <Suspense fallback={<DashboardSkeleton />}>
-          {children}
-        </Suspense>
-      </main>
+        <main className="flex-1 min-w-0 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 md:p-8">
+          {status === "loading" ? (
+            <DashboardSkeleton />
+          ) : (
+            <Suspense fallback={<DashboardSkeleton />}>
+              <PageTransition>{children}</PageTransition>
+            </Suspense>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

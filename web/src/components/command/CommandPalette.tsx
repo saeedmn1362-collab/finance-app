@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import Fuse from "fuse.js";
 
 import { Portal } from "@/components/ui/Portal";
 import { commandMenu } from "@/config/commandMenu";
@@ -24,6 +25,36 @@ export default function CommandPalette({ open, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // =========================
+  // Fuse.js Fuzzy Search
+  // =========================
+  const fuse = useMemo(() => {
+    return new Fuse(commandMenu, {
+      keys: [
+        { name: "label", weight: 0.6 },
+        { name: "keywords", weight: 0.3 },
+        { name: "href", weight: 0.1 },
+      ],
+      threshold: 0.3,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+      includeScore: true,
+    });
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return commandMenu;
+
+    return fuse
+      .search(query)
+      .sort((a, b) => (a.score ?? 1) - (b.score ?? 1))
+      .map((r) => r.item);
+  }, [query, fuse]);
+
+  // =========================
+  // Effects
+  // =========================
 
   // Reset when closed
   useEffect(() => {
@@ -47,19 +78,6 @@ export default function CommandPalette({ open, onClose }: Props) {
       document.body.style.overflow = "";
     };
   }, [open]);
-
-  // Filter items
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-
-    return commandMenu.filter((item) => {
-      return (
-        item.label.toLowerCase().includes(q) ||
-        item.href.toLowerCase().includes(q) ||
-        item.keywords?.some((k) => k.toLowerCase().includes(q))
-      );
-    });
-  }, [query]);
 
   // Reset activeIndex on query change
   useEffect(() => {

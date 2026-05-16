@@ -2,5 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* هیچ CSS دستی برای body ننویس */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* هیچ CSS دستی برای componentها ننویس */
 /* همه چیز با Tailwind مدیریت می‌شود */

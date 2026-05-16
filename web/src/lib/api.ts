@@ -6,6 +6,9 @@ const api = axios.create({
     "http://localhost:5000/api",
 });
 
+// =========================
+// Request Interceptor
+// =========================
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("token");
@@ -18,22 +21,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// =========================
+// Response Interceptor (clean)
+// =========================
 api.interceptors.response.use(
   (response) => response,
-
   (error) => {
-    if (typeof window !== "undefined") {
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
+    // normalize error (no side effects)
+    const normalizedError = {
+      message: error?.response?.data?.message || "Network Error",
+      status: error?.response?.status,
+      data: error?.response?.data,
+    };
 
-        const locale =
-          window.location.pathname.split("/")[1] || "fa";
-
-        window.location.assign(`/${locale}/login`);
-      }
-    }
-
-    return Promise.reject(error);
+    return Promise.reject(normalizedError);
   }
 );
 

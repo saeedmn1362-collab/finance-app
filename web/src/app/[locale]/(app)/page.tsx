@@ -1,9 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useTranslations, useLocale } from "next-intl";
 
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useRegisterCommands } from "@/hooks/useRegisterCommands";
+
+import type { Command } from "@/context/CommandRegistry";
 
 export default function HomePage() {
   const locale = useLocale();
@@ -12,10 +17,27 @@ export default function HomePage() {
 
   const t = useTranslations();
 
-  // همیشه اجرا شود
   const { data, isLoading, error } = useDashboard();
 
-  // فقط render را کنترل کن
+  // ✅ COMMANDS MEMOIZED
+  const commands = useMemo<Command[]>(
+    () => [
+      {
+        id: "refresh-dashboard",
+        label: "Refresh Dashboard",
+        keywords: ["reload", "refresh"],
+        group: "Dashboard",
+        priority: 90,
+        action: () => {
+          window.location.reload();
+        },
+      },
+    ],
+    []
+  );
+
+  useRegisterCommands(commands);
+
   if (!checked) return null;
 
   if (isLoading) {

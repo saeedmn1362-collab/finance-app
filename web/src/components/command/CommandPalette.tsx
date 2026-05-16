@@ -8,55 +8,65 @@ import { Search } from "lucide-react";
 import Fuse from "fuse.js";
 
 import { Portal } from "@/components/ui/Portal";
-import { commandMenu } from "@/config/commandMenu";
+
+import {
+  useResolvedCommands,
+  useCommandRegistry,
+  type Command,
+} from "@/context/CommandRegistry";
 
 type Props = {
   open: boolean;
   onClose: () => void;
 };
 
+type PageCommand = Command & {
+  type?: "page";
+  href?: string;
+};
+
+type ActionCommand = Command & {
+  type?: "action";
+};
+
 export default function CommandPalette({ open, onClose }: Props) {
   const locale = useLocale();
   const router = useRouter();
 
+  const commands = useResolvedCommands();
+  const { context } = useCommandRegistry();
+
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // =========================
-  // Fuse.js Fuzzy Search
-  // =========================
-  const fuse = useMemo(() => {
-    return new Fuse(commandMenu, {
-      keys: [
-        { name: "label", weight: 0.6 },
-        { name: "keywords", weight: 0.3 },
-        { name: "href", weight: 0.1 },
-      ],
-      threshold: 0.3,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-      includeScore: true,
-    });
-  }, []);
+  // ─────────────────────────────
+  // FUSE ENGINE (memo-safe)
+  // ─────────────────────────────
+  const fuse = useMemo(
+    () =>
+      new Fuse(commands, {
+        keys: [
+          { name: "label", weight: 0.6 },
+          { name: "keywords", weight: 0.3 },
+          { name: "group", weight: 0.1 },
+        ],
+        threshold: 0.3,
+        ignoreLocation: true,
+      }),
+    [commands]
+  );
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return commandMenu;
+    if (!query.trim()) return commands;
+    return fuse.search(query).map((r) => r.item);
+  }, [query, fuse, commands]);
 
-    return fuse
-      .search(query)
-      .sort((a, b) => (a.score ?? 1) - (b.score ?? 1))
-      .map((r) => r.item);
-  }, [query, fuse]);
-
-  // =========================
-  // Effects
-  // =========================
-
-  // Reset when closed
+  // ─────────────────────────────
+  // RESET STATE
+  // ─────────────────────────────
   useEffect(() => {
     if (!open) {
       setQuery("");
@@ -64,14 +74,10 @@ export default function CommandPalette({ open, onClose }: Props) {
     }
   }, [open]);
 
-  // Auto-focus input when opened
   useEffect(() => {
-    if (open && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 10);
-    }
+    if (open) setTimeout(() => inputRef.current?.focus(), 10);
   }, [open]);
 
-  // Scroll lock
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -79,84 +85,66 @@ export default function CommandPalette({ open, onClose }: Props) {
     };
   }, [open]);
 
-  // Reset activeIndex on query change
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query]);
+  useEffect(() => setActiveIndex(0), [query]);
 
-  // Clamp activeIndex
   useEffect(() => {
-    if (activeIndex >= filtered.length && filtered.length > 0) {
+    if (activeIndex >= filtered.length) {
       setActiveIndex(0);
     }
   }, [filtered, activeIndex]);
 
-  // Scroll active item into view
   useEffect(() => {
-    if (!listRef.current) return;
-
-    const el = listRef.current.querySelector(
+    const el = listRef.current?.querySelector(
       `[data-index="${activeIndex}"]`
     ) as HTMLElement | null;
 
-    if (el) {
-      el.scrollIntoView({
-        block: "nearest",
-        behavior: "smooth",
-      });
-    }
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [activeIndex]);
 
-  const navigate = (href: string) => {
+  // ─────────────────────────────
+  // EXECUTION ENGINE (FINAL FIXED)
+  // ─────────────────────────────
+  const execute = async (cmd: Command) => {
+    try {
+      await cmd.action(context);
+    } finally {
+      if (cmd.closeOnRun !== false) onClose();
+    }
+  };
+
+  const navigate = (href?: string) => {
+    if (!href) return;
     router.push(`/${locale}${href}`);
     onClose();
   };
 
-  // Keyboard navigation + focus trap
+  // ─────────────────────────────
+  // KEYBOARD HANDLING
+  // ─────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Focus trap
-    if (e.key === "Tab") {
-      const focusable = containerRef.current?.querySelectorAll(
-        "input, button"
-      ) as NodeListOf<HTMLElement>;
-
-      if (!focusable || focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-
-    // Navigation
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIndex((prev) =>
-        prev + 1 < filtered.length ? prev + 1 : prev
-      );
+      setActiveIndex((p) => Math.min(p + 1, filtered.length - 1));
     }
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      setActiveIndex((prev) =>
-        prev - 1 >= 0 ? prev - 1 : prev
-      );
+      setActiveIndex((p) => Math.max(p - 1, 0));
     }
 
     if (e.key === "Enter") {
       e.preventDefault();
+
       const item = filtered[activeIndex];
-      if (item) navigate(item.href);
+      if (!item) return;
+
+      const typed = item as PageCommand | ActionCommand;
+
+      if (typed.type === "page") {
+        navigate(typed.href);
+      } else {
+        execute(item);
+      }
     }
 
     if (e.key === "Escape") {
@@ -165,12 +153,14 @@ export default function CommandPalette({ open, onClose }: Props) {
     }
   };
 
+  // ─────────────────────────────
+  // UI
+  // ─────────────────────────────
   return (
     <Portal>
       <AnimatePresence>
         {open && (
           <>
-            {/* Overlay */}
             <motion.div
               className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -179,87 +169,77 @@ export default function CommandPalette({ open, onClose }: Props) {
               onClick={onClose}
             />
 
-            {/* Panel */}
             <motion.div
-              ref={containerRef}
               initial={{ opacity: 0, y: -12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: 0.16, ease: "easeOut" }}
+              transition={{ duration: 0.15 }}
               className="fixed left-1/2 top-[12%] z-[100] w-full max-w-xl -translate-x-1/2 rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="command-palette-title"
             >
-              {/* Search */}
-              <div className="flex items-center gap-3 border-b border-gray-200 px-4 h-14 dark:border-gray-800">
+              {/* INPUT */}
+              <div className="flex items-center gap-3 border-b px-4 h-14">
                 <Search className="w-4 h-4 text-gray-400" />
 
                 <input
                   ref={inputRef}
-                  id="command-palette-input"
-                  autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="جستجو..."
+                  placeholder="Search commands..."
                   className="flex-1 bg-transparent outline-none text-sm"
-                  role="combobox"
-                  aria-controls="command-palette-list"
-                  aria-expanded="true"
-                  aria-activedescendant={
-                    filtered.length > 0
-                      ? `command-item-${activeIndex}`
-                      : undefined
-                  }
                 />
               </div>
 
-              {/* Results */}
+              {/* LIST */}
               <div
                 ref={listRef}
-                id="command-palette-list"
-                role="listbox"
                 className="max-h-[320px] overflow-y-auto p-2"
               >
                 {filtered.length === 0 ? (
-                  <div className="px-3 py-8 text-center text-sm text-gray-500">
-                    نتیجه‌ای پیدا نشد
+                  <div className="text-center text-sm text-gray-500 py-8">
+                    No results
                   </div>
                 ) : (
                   filtered.map((item, index) => {
                     const isActive = index === activeIndex;
+                    const typed = item as PageCommand | ActionCommand;
 
                     return (
                       <button
                         key={item.id}
-                        id={`command-item-${index}`}
                         data-index={index}
-                        onClick={() => navigate(item.href)}
-                        onKeyDown={handleKeyDown}
-                        role="option"
-                        aria-selected={isActive}
-                        tabIndex={-1}
-                        className={`w-full flex items-center rounded-xl px-3 py-3 text-sm transition text-right
+                        onClick={() =>
+                          typed.type === "page"
+                            ? navigate(typed.href)
+                            : execute(item)
+                        }
+                        className={`w-full flex justify-between rounded-xl px-3 py-3 text-sm transition
                           ${
                             isActive
-                              ? "bg-gray-100 dark:bg-gray-800 font-medium"
+                              ? "bg-gray-100 dark:bg-gray-800"
                               : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                          }
-                        `}
+                          }`}
                       >
-                        {item.label}
+                        <span>{item.label}</span>
+
+                        {typed.type === "action" && (
+                          <span className="text-xs text-blue-500">
+                            action
+                          </span>
+                        )}
                       </button>
                     );
                   })
                 )}
               </div>
 
-              {/* Hint footer */}
-              <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-xs text-gray-500 flex items-center justify-between">
-                <span>↑↓ حرکت</span>
-                <span>Enter انتخاب</span>
-                <span>Esc بستن</span>
+              {/* FOOTER */}
+              <div className="border-t px-4 py-2 text-xs text-gray-500 flex justify-between">
+                <span>↑↓ Navigate</span>
+                <span>Enter Select</span>
+                <span>Esc Close</span>
               </div>
             </motion.div>
           </>

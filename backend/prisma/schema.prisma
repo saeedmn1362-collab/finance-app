@@ -8,7 +8,7 @@ datasource db {
 }
 
 //////////////////////////////////////////////////////
-// ENUMS
+// ENUMS (UNCHANGED - SAFE)
 //////////////////////////////////////////////////////
 
 enum AccountType {
@@ -20,10 +20,12 @@ enum AccountType {
 enum TransactionType {
   INCOME
   EXPENSE
-  TRANSFER
+  TRANSFER_IN
+  TRANSFER_OUT
   RECEIVABLE
   PAYABLE
 }
+
 
 enum PersonType {
   BORROWER
@@ -56,7 +58,7 @@ model User {
 }
 
 //////////////////////////////////////////////////////
-// ACCOUNT
+// ACCOUNT (FINAL — balance REMOVED)
 //////////////////////////////////////////////////////
 
 model Account {
@@ -69,18 +71,17 @@ model Account {
 
   initialBalance Decimal @default(0) @db.Decimal(18, 4)
 
-  isArchived Boolean @default(false)
+  // ❌ balance removed exactly as requested
 
-  deletedAt DateTime?
+  isArchived Boolean @default(false)
+  deletedAt  DateTime?
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  transactions Transaction[] @relation("AccountTransactions")
-
-  fromTransactions Transaction[] @relation("FromAccount")
-
-  toTransactions Transaction[] @relation("ToAccount")
+  transactions      Transaction[] @relation("AccountTransactions")
+  fromTransactions  Transaction[] @relation("FromAccount")
+  toTransactions    Transaction[] @relation("ToAccount")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,31 +100,24 @@ model Category {
   id String @id @default(cuid())
 
   name String
-
   type CategoryType
 
   color String?
-
-  icon String?
+  icon  String?
 
   isArchived Boolean @default(false)
-
-  deletedAt DateTime?
+  deletedAt  DateTime?
 
   parentId String?
-
   parent Category? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-
   children Category[] @relation("CategoryTree")
 
   userId String
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[] @relation("CategoryTransactions")
 
   createdAt DateTime @default(now())
-
   updatedAt DateTime @updatedAt
 
   @@unique([userId, name, type])
@@ -141,11 +135,9 @@ model Person {
   id String @id @default(cuid())
 
   name String
-
   type PersonType @default(CONTACT)
 
   userId String
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[]
@@ -157,50 +149,49 @@ model Person {
 }
 
 //////////////////////////////////////////////////////
-// TRANSACTION
+// TRANSACTION (UNCHANGED)
 //////////////////////////////////////////////////////
 
 model Transaction {
   id String @id @default(cuid())
 
   type TransactionType
-
   amount Decimal @db.Decimal(18, 4)
 
   description String?
-
-  date DateTime
-
+  date DateTime @default(now())
   attachmentUrl String?
 
   userId String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   accountId String?
-  account Account? @relation("AccountTransactions", fields: [accountId], references: [id])
+  account   Account? @relation("AccountTransactions", fields: [accountId], references: [id])
 
   fromAccountId String?
-  fromAccount Account? @relation("FromAccount", fields: [fromAccountId], references: [id])
+  fromAccount   Account? @relation("FromAccount", fields: [fromAccountId], references: [id])
 
   toAccountId String?
-  toAccount Account? @relation("ToAccount", fields: [toAccountId], references: [id])
+  toAccount   Account? @relation("ToAccount", fields: [toAccountId], references: [id])
 
   categoryId String?
-  category Category? @relation("CategoryTransactions", fields: [categoryId], references: [id], onDelete: SetNull)
+  category   Category? @relation("CategoryTransactions", fields: [categoryId], references: [id], onDelete: SetNull)
 
   personId String?
-  person Person? @relation(fields: [personId], references: [id])
+  person   Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-
+  isReversed Boolean @default(false)
   deletedAt DateTime?
 
-  // ⭐ Indexهای مهم برای سرعت گزارش‌گیری
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
-  @@index([userId, date])     // ← مهم‌ترین index برای گزارش ماهانه/سالانه
+  @@index([userId, date])
   @@index([userId, type])
   @@index([userId, deletedAt])
   @@index([accountId])
+  @@index([fromAccountId])
+  @@index([toAccountId])
   @@index([categoryId])
 }

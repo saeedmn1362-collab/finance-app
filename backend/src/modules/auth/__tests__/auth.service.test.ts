@@ -9,6 +9,12 @@ jest.mock("../../../lib/prisma", () => ({
     findUnique: jest.fn(),
     create: jest.fn(),
   },
+  session: {
+    create: jest.fn(),
+  },
+  refreshToken: {
+    create: jest.fn(),
+  },
 }));
 
 jest.mock("bcryptjs", () => ({
@@ -88,18 +94,21 @@ describe("Auth Service", () => {
 
   describe("login", () => {
     it("should login successfully", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
-      (mockBcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (mockJwt.sign as jest.Mock).mockReturnValue("mock-token");
+        mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+        (mockBcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (mockJwt.sign as jest.Mock).mockReturnValue("mock-token");
+        mockPrisma.session.create.mockResolvedValue({ id: "session-1" });
+        mockPrisma.refreshToken.create.mockResolvedValue({});
 
-      const result = await authService.login({
-        email: "john@test.com",
-        password: "password123",
+        const result = await authService.login({
+          email: "john@test.com",
+          password: "password123",
+        });
+
+        expect(result.accessToken).toBe("mock-token");
+        expect(result.user.id).toBe("user-1");
+        expect(result.refreshToken).toBeDefined();
       });
-
-      expect(result.token).toBe("mock-token");
-      expect(result.user.id).toBe("user-1");
-    });
 
     it("should reject wrong email", async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);

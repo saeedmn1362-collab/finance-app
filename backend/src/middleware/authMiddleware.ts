@@ -1,28 +1,43 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AppError } from "../core/errors/AppError";
-import { AuthRequest } from "../core/http/types";
 
 export const authMiddleware = (
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies?.token;
+    // SUPPORT BOTH COOKIE NAMES
+    const token =
+      req.cookies?.accessToken || req.cookies?.token;
 
     if (!token) {
-      return next(new AppError("Unauthorized", 401, "AUTH_NO_TOKEN"));
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "AUTH_NO_TOKEN",
+          message: "Authentication token missing",
+        },
+      });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as jwt.JwtPayload;
+
+    req.user = {
+      userId: decoded.userId || decoded.id,
     };
 
-    (req as AuthRequest).user = { userId: decoded.userId };
-
     next();
-  } catch {
-    return next(new AppError("Invalid or expired token", 401, "AUTH_INVALID_TOKEN"));
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: "AUTH_INVALID_TOKEN",
+        message: "Invalid or expired token",
+      },
+    });
   }
 };

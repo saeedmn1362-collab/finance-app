@@ -8,7 +8,7 @@ datasource db {
 }
 
 //////////////////////////////////////////////////////
-// ENUMS (UNCHANGED - SAFE)
+// ENUMS
 //////////////////////////////////////////////////////
 
 enum AccountType {
@@ -25,7 +25,6 @@ enum TransactionType {
   RECEIVABLE
   PAYABLE
 }
-
 
 enum PersonType {
   BORROWER
@@ -51,14 +50,57 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  accounts     Account[]
-  transactions Transaction[]
-  categories   Category[]
-  persons      Person[]
+  accounts      Account[]
+  transactions  Transaction[]
+  categories    Category[]
+  persons       Person[]
+  sessions      Session[]
+  refreshTokens RefreshToken[]
 }
 
 //////////////////////////////////////////////////////
-// ACCOUNT (FINAL — balance REMOVED)
+// SESSION
+//////////////////////////////////////////////////////
+
+model Session {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceInfo String?
+  ipAddress  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  @@index([userId])
+}
+
+//////////////////////////////////////////////////////
+// REFRESH TOKEN
+//////////////////////////////////////////////////////
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  sessionId String
+  session   Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+//////////////////////////////////////////////////////
+// ACCOUNT
 //////////////////////////////////////////////////////
 
 model Account {
@@ -71,17 +113,15 @@ model Account {
 
   initialBalance Decimal @default(0) @db.Decimal(18, 4)
 
-  // ❌ balance removed exactly as requested
-
-  isArchived Boolean @default(false)
+  isArchived Boolean   @default(false)
   deletedAt  DateTime?
 
   userId String
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  transactions      Transaction[] @relation("AccountTransactions")
-  fromTransactions  Transaction[] @relation("FromAccount")
-  toTransactions    Transaction[] @relation("ToAccount")
+  transactions     Transaction[] @relation("AccountTransactions")
+  fromTransactions Transaction[] @relation("FromAccount")
+  toTransactions   Transaction[] @relation("ToAccount")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,15 +145,15 @@ model Category {
   color String?
   icon  String?
 
-  isArchived Boolean @default(false)
+  isArchived Boolean   @default(false)
   deletedAt  DateTime?
 
   parentId String?
-  parent Category? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryTree")
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[] @relation("CategoryTransactions")
 
@@ -138,7 +178,7 @@ model Person {
   type PersonType @default(CONTACT)
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[]
 
@@ -149,21 +189,21 @@ model Person {
 }
 
 //////////////////////////////////////////////////////
-// TRANSACTION (UNCHANGED)
+// TRANSACTION
 //////////////////////////////////////////////////////
 
 model Transaction {
   id String @id @default(cuid())
 
-  type TransactionType
-  amount Decimal @db.Decimal(18, 4)
+  type   TransactionType
+  amount Decimal         @db.Decimal(18, 4)
 
-  description String?
-  date DateTime @default(now())
+  description   String?
+  date          DateTime  @default(now())
   attachmentUrl String?
 
   userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   accountId String?
   account   Account? @relation("AccountTransactions", fields: [accountId], references: [id])
@@ -180,8 +220,8 @@ model Transaction {
   personId String?
   person   Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
 
-  isReversed Boolean @default(false)
-  deletedAt DateTime?
+  isReversed Boolean   @default(false)
+  deletedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

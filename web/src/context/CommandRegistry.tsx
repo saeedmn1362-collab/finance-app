@@ -14,11 +14,15 @@ import type { ReactNode } from "react";
 // TYPES
 // ─────────────────────────────────────────────────────────────
 
+export type AuthUser = {
+  userId: string;
+  role: "admin" | "user" | "readonly";
+  permissions: string[];
+};
+
 export type CommandContext = {
   auth: {
-    userId: string;
-    role: "admin" | "user" | "readonly";
-    permissions: string[];
+    user: AuthUser | null;
   };
 
   route: string;
@@ -49,9 +53,7 @@ export type Command = {
 
   disabled?: boolean | ((ctx: CommandContext) => boolean);
 
-  action: (
-    ctx: CommandContext
-  ) => void | Promise<void>;
+  action: (ctx: CommandContext) => void | Promise<void>;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -65,13 +67,10 @@ type RegistryValue = {
 
   register: (cmd: Command) => () => void;
 
-  setContext: (
-    partial: Partial<CommandContext>
-  ) => void;
+  setContext: (partial: Partial<CommandContext>) => void;
 };
 
-const CommandRegistryContext =
-  createContext<RegistryValue | null>(null);
+const CommandRegistryContext = createContext<RegistryValue | null>(null);
 
 // ─────────────────────────────────────────────────────────────
 // DEFAULT CONTEXT
@@ -79,9 +78,7 @@ const CommandRegistryContext =
 
 const DEFAULT_CONTEXT: CommandContext = {
   auth: {
-    userId: "",
-    role: "user",
-    permissions: [],
+    user: null,
   },
 
   route: "/",
@@ -100,70 +97,56 @@ export function CommandRegistryProvider({
   initialContext,
 }: {
   children: ReactNode;
-
   initialContext?: Partial<CommandContext>;
 }) {
-  // ─────────────────────────────
   // COMMAND STORE
-  // ─────────────────────────────
+  const [commands, setCommands] = useState<Map<string, Command>>(
+    () => new Map()
+  );
 
-  const [commands, setCommands] = useState<
-    Map<string, Command>
-  >(() => new Map());
-
-  // ─────────────────────────────
   // CONTEXT STORE
-  // ─────────────────────────────
+  const [context, setContextState] = useState<CommandContext>({
+    ...DEFAULT_CONTEXT,
+    ...initialContext,
+  });
 
-  const [context, setContextState] =
-    useState<CommandContext>({
-      ...DEFAULT_CONTEXT,
-      ...initialContext,
-    });
-
-  // ─────────────────────────────
-  // REGISTER
-  // ─────────────────────────────
-
+  // REGISTER COMMAND
   const register = useCallback((cmd: Command) => {
     setCommands((prev) => {
       const next = new Map(prev);
-
       next.set(cmd.id, cmd);
-
       return next;
     });
 
-    // cleanup on unmount
     return () => {
       setCommands((prev) => {
         const next = new Map(prev);
-
         next.delete(cmd.id);
-
         return next;
       });
     };
   }, []);
 
-  // ─────────────────────────────
-  // UPDATE CONTEXT
-  // ─────────────────────────────
+  // UPDATE CONTEXT (SAFE MERGE)
+  const setContext = useCallback((partial: Partial<CommandContext>) => {
+    setContextState((prev) => ({
+      ...prev,
+      ...partial,
 
-  const setContext = useCallback(
-    (partial: Partial<CommandContext>) => {
-      setContextState((prev) => ({
-        ...prev,
-        ...partial,
-      }));
-    },
-    []
-  );
+      // SAFE MERGE for auth
+      auth: partial.auth ?? prev.auth,
 
-  // ─────────────────────────────
+      // SAFE MERGE for flags
+      flags: partial.flags
+        ? {
+            ...prev.flags,
+            ...partial.flags,
+          }
+        : prev.flags,
+    }));
+  }, []);
+
   // MEMOIZED VALUE
-  // ─────────────────────────────
-
   const value = useMemo(() => {
     return {
       commands,
@@ -171,7 +154,7 @@ export function CommandRegistryProvider({
       register,
       setContext,
     };
-  }, [commands, context]);
+  }, [commands, context, register, setContext]);
 
   return (
     <CommandRegistryContext.Provider value={value}>
@@ -188,9 +171,7 @@ export function useCommandRegistry() {
   const ctx = useContext(CommandRegistryContext);
 
   if (!ctx) {
-    throw new Error(
-      "useCommandRegistry must be used inside CommandRegistryProvider"
-    );
+    throw new Error("useCommandRegistry must be used inside CommandRegistryProvider");
   }
 
   return ctx;
@@ -200,10 +181,7 @@ export function useCommandRegistry() {
 // DISABLED RESOLVER
 // ─────────────────────────────────────────────────────────────
 
-export function resolveDisabled(
-  cmd: Command,
-  ctx: CommandContext
-): boolean {
+export function resolveDisabled(cmd: Command, ctx: CommandContext): boolean {
   if (typeof cmd.disabled === "function") {
     return cmd.disabled(ctx);
   }
@@ -216,29 +194,17 @@ export function resolveDisabled(
 // ─────────────────────────────────────────────────────────────
 
 export function useResolvedCommands() {
-  const { commands, context } =
-    useCommandRegistry();
+  const { commands, context } = useCommandRegistry();
 
   return useMemo(() => {
     return Array.from(commands.values())
-
-      // when()
       .filter((cmd) => {
         if (!cmd.when) return true;
-
         return cmd.when(context);
       })
-
-      // disabled()
       .filter((cmd) => {
         return !resolveDisabled(cmd, context);
       })
-
-      // priority
-      .sort(
-        (a, b) =>
-          (b.priority ?? 0) -
-          (a.priority ?? 0)
-      );
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
   }, [commands, context]);
 }

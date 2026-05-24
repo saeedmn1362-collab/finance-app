@@ -126,3 +126,72 @@ Backend Core (API + Infrastructure)
 - prisma/client.js به عنوان bridge ساخته شد
 - پروژه به GitHub push شد
 - Files changed: backend/src/prisma/client.js
+
+---
+
+### Session 8 — Frontend Infrastructure & Command System
+- تاریخ: 2026-05-16
+
+### Completed
+- Next.js App Router architecture stabilized
+- AuthProvider integrated globally
+- RouteSync system implemented
+- CommandRegistry system implemented
+- Global command architecture added
+- Keyboard shortcut engine added
+- Sidebar navigation integrated
+- Route-aware command context implemented
+- GuestGuard architecture stabilized
+- useAuthGuard improved
+- redirect loop debugging completed
+- React Query provider stabilized
+
+### New Systems
+- Command System
+- Route Sync System
+- Shortcut Engine
+- Navigation-aware Commands
+- Context-aware Command Visibility
+
+### Debug Infrastructure
+- AuthTester
+- RouteTester
+- CommandTester
+
+### Architecture Improvements
+- centralized auth state
+- centralized route context
+- scalable command infrastructure
+- RBAC-ready navigation system
+
+### Current Frontend Status
+- authentication flow functional
+- route synchronization functional
+- global commands functional
+- command visibility system functional
+- sidebar navigation functional
+
+### Remaining Frontend Tasks
+- command palette UI
+- Auto RBAC Tester
+- Navigation Guard System
+- Permission Visualizer
+- dashboard data integration
+- transaction pages
+- account pages
+- category management UI
+
+### Known Issues
+- occasional browser redirect instability observed during development
+- requires final middleware-based auth stabilization later
+
+### Files Added/Updated
+- web/src/context/CommandRegistry.tsx
+- web/src/components/route/RouteSync.tsx
+- web/src/components/debug/CommandTester.tsx
+- web/src/components/debug/RouteTester.tsx
+- web/src/components/auth/AuthBootstrap.tsx
+- web/src/hooks/useAuthGuard.ts
+- web/src/components/guard/GuestGuard.tsx
+- web/src/components/layout/Sidebar.tsx
+- web/src/components/command/*

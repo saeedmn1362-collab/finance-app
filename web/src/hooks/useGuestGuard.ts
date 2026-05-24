@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/auth.helper";
+import { useAuthContext } from "@/context/AuthContext";
 
 export function useGuestGuard(redirectTo: string) {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "guest" | "auth">("checking");
+  const { user, loading } = useAuthContext();
 
   useEffect(() => {
-    const token = auth.getToken();
+    if (loading) return; // تا وقتی auth معلوم نشده، هیچ redirect نکن
 
-    if (token) {
-      setStatus("auth");
+    if (user) {
       router.replace(redirectTo);
-    } else {
-      setStatus("guest");
     }
-  }, [router, redirectTo]);
+  }, [user, loading, redirectTo, router]);
 
-  return status === "guest";
+  return !loading && !user;
 }

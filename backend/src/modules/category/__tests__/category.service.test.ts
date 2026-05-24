@@ -185,3 +185,42 @@ describe("Category Service", () => {
     });
   });
 });
+describe("updateCategory — cycle detection", () => {
+  it("should reject circular reference", async () => {
+    mockPrisma.category.findFirst
+      // 1) find category by id (exists)
+      .mockResolvedValueOnce(mockCategory)
+      // 2) duplicate check → no duplicate
+      .mockResolvedValueOnce(null)
+      // 3) parent category exists
+      .mockResolvedValueOnce({ id: "cat-parent", parentId: null })
+      // 4) checkCycle → parent of parent is cat-1 → cycle
+      .mockResolvedValueOnce({ parentId: "cat-1" });
+
+    await expect(
+      categoryService.updateCategory("user-1", "cat-1", {
+        parentId: "cat-parent",
+      })
+    ).rejects.toThrow(AppError);
+  });
+
+  it("should reject deep circular reference", async () => {
+    mockPrisma.category.findFirst
+      // 1) find category by id (exists)
+      .mockResolvedValueOnce(mockCategory)
+      // 2) duplicate check → no duplicate
+      .mockResolvedValueOnce(null)
+      // 3) parent category exists
+      .mockResolvedValueOnce({ id: "cat-2", parentId: null })
+      // 4) checkCycle step 1 → parent of cat-2 is cat-3
+      .mockResolvedValueOnce({ parentId: "cat-3" })
+      // 5) checkCycle step 2 → parent of cat-3 is cat-1 → cycle
+      .mockResolvedValueOnce({ parentId: "cat-1" });
+
+    await expect(
+      categoryService.updateCategory("user-1", "cat-1", {
+        parentId: "cat-2",
+      })
+    ).rejects.toThrow(AppError);
+  });
+});

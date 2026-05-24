@@ -3,21 +3,21 @@
   "no_account": "Don't have an account?",
   "register": "Register",
   "login": "Login",
+  "logging_in": "Logging in...",
   "login_title": "Login",
   "login_subtitle": "Smart finance management",
   "email": "Email",
   "password": "Password",
   "fill_all_fields": "Please fill all fields",
+  "fields_required": "Please fill all fields",
   "invalid_email": "Invalid email",
   "login_failed": "Login failed",
   "loading": "Loading...",
-
   "dashboard": "Dashboard",
   "total_balance": "Total Balance",
   "income": "Income",
   "expense": "Expense",
   "accounts": "Accounts",
-
   "navbar": {
     "user": "User",
     "profile": "Profile",

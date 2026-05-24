@@ -1,158 +1,92 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect } from "react";
 
-import { useRegisterCommands } from "@/hooks/useRegisterCommands";
-
-import type {
-  Command,
-  CommandContext,
+import {
+  useCommandRegistry,
+  type CommandContext,
 } from "@/context/CommandRegistry";
 
 export default function GlobalCommands() {
-  const commands = useMemo<Command[]>(
-    () => [
+  const { register } =
+    useCommandRegistry();
+
+  useEffect(() => {
+    const unregister = [
       // ─────────────────────────────
-      // NAVIGATION
+      // LOGIN
       // ─────────────────────────────
 
-      {
-        id: "go-dashboard",
+      register({
+        id: "go-login",
 
-        label: "Dashboard",
+        label: "Go To Login",
 
-        keywords: ["home", "main"],
+        keywords: ["login", "signin"],
 
         group: "Navigation",
 
         priority: 100,
 
-        shortcut: ["g d"],
+        when: (ctx: CommandContext) =>
+          !ctx.auth.user,
 
         action: (ctx: CommandContext) => {
-          window.location.href = `/${ctx.locale}`;
+          window.location.href = `/${ctx.locale}/login`;
         },
-      },
+      }),
 
-      {
-        id: "go-login",
+      // ─────────────────────────────
+      // REGISTER
+      // ─────────────────────────────
 
-        label: "Login",
+      register({
+        id: "go-register",
 
-        keywords: ["auth", "signin"],
+        label: "Go To Register",
+
+        keywords: ["register", "signup"],
 
         group: "Navigation",
 
         priority: 90,
 
-        shortcut: ["g l"],
-
         when: (ctx: CommandContext) =>
-          !ctx.auth.userId,
+          !ctx.auth.user,
 
         action: (ctx: CommandContext) => {
-          window.location.href = `/${ctx.locale}/login`;
+          window.location.href = `/${ctx.locale}/register`;
         },
-      },
-
-      {
-        id: "logout",
-
-        label: "Logout",
-
-        keywords: ["exit", "signout"],
-
-        group: "Account",
-
-        priority: 100,
-
-        shortcut: ["shift+q"],
-
-        when: (ctx: CommandContext) =>
-          !!ctx.auth.userId,
-
-        action: () => {
-          localStorage.removeItem(
-            "token"
-          );
-
-          window.location.href =
-            "/login";
-        },
-      },
+      }),
 
       // ─────────────────────────────
-      // UI
+      // HOME
       // ─────────────────────────────
 
-      {
-        id: "toggle-theme",
+      register({
+        id: "go-home",
 
-        label: "Toggle Theme",
+        label: "Go Home",
 
-        keywords: ["dark", "light"],
+        keywords: ["home", "dashboard"],
 
-        group: "UI",
+        group: "Navigation",
 
         priority: 80,
 
-        shortcut: ["mod+t"],
+        when: (ctx: CommandContext) =>
+          !!ctx.auth.user,
 
-        action: () => {
-          document.documentElement.classList.toggle(
-            "dark"
-          );
+        action: (ctx: CommandContext) => {
+          window.location.href = `/${ctx.locale}`;
         },
-      },
+      }),
+    ];
 
-      {
-        id: "reload-app",
-
-        label: "Reload App",
-
-        keywords: ["refresh", "reload"],
-
-        group: "System",
-
-        priority: 70,
-
-        shortcut: ["r"],
-
-        action: () => {
-          window.location.reload();
-        },
-      },
-
-      // ─────────────────────────────
-      // COMMAND PALETTE
-      // ─────────────────────────────
-
-      {
-        id: "open-palette",
-
-        label: "Open Command Palette",
-
-        keywords: ["cmdk", "search"],
-
-        group: "System",
-
-        priority: 200,
-
-        shortcut: ["mod+k"],
-
-        action: () => {
-          window.dispatchEvent(
-            new CustomEvent(
-              "open-command-palette"
-            )
-          );
-        },
-      },
-    ],
-    []
-  );
-
-  useRegisterCommands(commands);
+    return () => {
+      unregister.forEach((fn) => fn());
+    };
+  }, [register]);
 
   return null;
 }

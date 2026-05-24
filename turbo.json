@@ -1,0 +1,30 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+
+  "globalDependencies": [".env.*"],
+
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"],
+      "cache": true
+    },
+
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+
+    "lint": {
+      "outputs": []
+    },
+
+    "type-check": {
+      "outputs": []
+    },
+
+    "clean": {
+      "cache": false
+    }
+  }
+}

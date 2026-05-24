@@ -1,45 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-import { useRouter } from "next/navigation";
-
-import {
-  useLocale,
-  useTranslations,
-} from "next-intl";
-
+import { Suspense, useMemo, useState } from "react";
+import GuestGuard from "@/components/guard/GuestGuard";
+import { useLocale, useTranslations } from "next-intl";
 import api from "@/lib/api";
-
-import { auth } from "@/lib/auth.helper";
-
-import { useGuestGuard } from "@/hooks/useGuestGuard";
+import { useAuthContext } from "@/hooks/useAuthContext";
 import { useRegisterCommands } from "@/hooks/useRegisterCommands";
-
 import type { Command } from "@/context/CommandRegistry";
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
-export default function LoginPage() {
-  const router = useRouter();
-
+function LoginPageContent() {
   const locale = useLocale();
-
   const t = useTranslations();
-
-  const checked = useGuestGuard(
-    `/${locale}`
-  );
+  const { refetch } = useAuthContext();
 
   const [email, setEmail] = useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // ─────────────────────────────
   // COMMANDS
@@ -49,15 +30,10 @@ export default function LoginPage() {
     () => [
       {
         id: "focus-email-login",
-
         label: "Focus Email",
-
         keywords: ["email", "login"],
-
         group: "Login",
-
         priority: 50,
-
         action: () => {
           document
             .querySelector<HTMLInputElement>(
@@ -66,23 +42,15 @@ export default function LoginPage() {
             ?.focus();
         },
       },
-
       {
         id: "focus-password-login",
-
         label: "Focus Password",
-
         keywords: ["password", "login"],
-
         group: "Login",
-
         priority: 40,
-
         action: () => {
           document
-            .querySelector<HTMLInputElement>(
-              'input[type="password"]'
-            )
+            .querySelector<HTMLInputElement>('input[type="password"]')
             ?.focus();
         },
       },
@@ -92,37 +60,42 @@ export default function LoginPage() {
 
   useRegisterCommands(commands);
 
-  if (!checked) return null;
-
   // ─────────────────────────────
   // LOGIN
   // ─────────────────────────────
 
   async function handleLogin() {
+    if (loading) return;
+
+    setError(null);
+
+    if (!email || !password) {
+      setError(t("fields_required"));
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const response = await api.post(
-        "/auth/login",
-        {
-          email,
-          password,
-        }
-      );
+      await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-      const token = response.data.token;
-
-      auth.setToken(token);
-
-      router.replace(`/${locale}`);
-    } catch (error) {
-      console.error(error);
-
-      alert(t("login_failed"));
+      await refetch();
+    } catch {
+      setError(t("login_failed"));
     } finally {
       setLoading(false);
     }
   }
+
+  // shared handler (🔥 FIX اصلی اینجاست)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
 
   // ─────────────────────────────
   // UI
@@ -135,37 +108,50 @@ export default function LoginPage() {
           {t("login")}
         </h1>
 
+        {error && (
+          <p className="text-red-500 text-sm mb-3">{error}</p>
+        )}
+
         <Input
+          disabled={loading}
           type="email"
           placeholder={t("email")}
           value={email}
-          onChange={(e: any) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setEmail(e.target.value)
           }
+          onKeyDown={handleKeyDown}
         />
 
         <div className="h-3" />
 
         <Input
+          disabled={loading}
           type="password"
           placeholder={t("password")}
           value={password}
-          onChange={(e: any) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setPassword(e.target.value)
           }
+          onKeyDown={handleKeyDown}
         />
 
         <div className="h-5" />
 
-        <Button
-          onClick={handleLogin}
-          disabled={loading}
-        >
-          {loading
-            ? "Loading..."
-            : t("login")}
+        <Button onClick={handleLogin} disabled={loading}>
+          {loading ? t("logging_in") : t("login")}
         </Button>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GuestGuard>
+        <LoginPageContent />
+      </GuestGuard>
+    </Suspense>
   );
 }

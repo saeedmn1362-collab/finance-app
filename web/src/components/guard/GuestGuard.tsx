@@ -4,17 +4,21 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/AuthContext";
 
-export function useAuthGuard(redirectTo: string) {
+export default function GuestGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuthContext();
 
   useEffect(() => {
     if (loading) return;
 
-    if (!user) {
-      router.replace(redirectTo);
+    if (user) {
+      router.replace("/");
     }
-  }, [user, loading, redirectTo, router]);
+  }, [user, loading, router]);
 
-  return !loading && !!user;
+  if (loading) return null;
+
+  if (user) return null;
+
+  return <>{children}</>;
 }

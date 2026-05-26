@@ -1,40 +1,41 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
+
     "module": "CommonJS",
     "moduleResolution": "Node",
+
     "rootDir": "src",
     "outDir": "dist",
+
     "strict": true,
+
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node", "jest"],
+
     "sourceMap": true,
-    "baseUrl": "src",
+
+    "baseUrl": ".",
+
     "paths": {
-      "@/*": ["*"],
-      "@modules/*": ["modules/*"],
-      "@shared/*": ["shared/*"],
-      "@config/*": ["config/*"]
+      "@/*": ["src/*"],
+      "@modules/*": ["src/modules/*"],
+      "@shared/*": ["src/shared/*"],
+      "@config/*": ["src/config/*"]
     }
   },
-  "include": [
-    "src/**/*"
-  ],
+
+  "include": ["src/**/*"],
+
   "exclude": [
     "node_modules",
-    "dist",
-    "src/controllers",
-    "src/services",
-    "src/lib/api.ts",
-    "src/modules/dashboard",
-    "src/modules/reports",
-    "src/modules/users",
-    "src/validators"
+    "dist"
   ]
 }

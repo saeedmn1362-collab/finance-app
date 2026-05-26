@@ -1,28 +1,51 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+
+    "rootDir": "src",
+    "outDir": "dist",
+
     "strict": true,
-    "noEmit": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+
+    "sourceMap": true,
+
     "baseUrl": ".",
+
     "paths": {
-      "@/*": ["web/src/*"],
-      "@backend/*": ["backend/src/*"],
-      "@shared/*": ["shared/*"]
+      "@/*": ["src/*"],
+      "@modules/*": ["src/modules/*"],
+      "@shared/*": ["src/shared/*"],
+      "@config/*": ["src/config/*"]
     }
   },
-  "include": [
-    "web",
-    "backend",
-    "shared"
-  ],
+
+  "include": ["src/**/*"],
+
   "exclude": [
     "node_modules",
     "dist",
-    ".next"
+
+    "src/lib/api.ts",
+
+    "src/modules/dashboard/**",
+    "src/modules/reports/**",
+    "src/modules/users/**",
+
+    "src/controllers/**",
+    "src/services/**",
+    "src/validators/**"
   ]
 }

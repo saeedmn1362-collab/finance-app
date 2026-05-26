@@ -1,0 +1,58 @@
+# =========================
+# Dependencies
+# =========================
+node_modules
+**/node_modules
+
+# =========================
+# Build outputs
+# =========================
+dist
+**/dist
+.next
+**/.next
+.turbo
+**/.turbo
+
+# =========================
+# Git
+# =========================
+.git
+.gitignore
+
+# =========================
+# Logs
+# =========================
+npm-debug.log
+pnpm-debug.log
+*.log
+
+# =========================
+# Environment
+# =========================
+.env
+.env.*
+
+# =========================
+# IDE
+# =========================
+.vscode
+.idea
+
+# =========================
+# Test / coverage
+# =========================
+coverage
+
+# =========================
+# Docker files (optional but recommended)
+# =========================
+Dockerfile
+docker-compose.yml
+
+# =========================
+# Prisma / local cache (IMPORTANT)
+# =========================
+backend/.cache
+backend/node_modules
+backend/dist

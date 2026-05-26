@@ -1,11 +1,86 @@
+# =========================
+# Dependencies
+# =========================
 node_modules/
-.env
-.env.local
+**/node_modules/
+
+# pnpm
+.pnpm-store/
+
+# =========================
+# Build outputs
+# =========================
 dist/
 build/
 .next/
-.expo/
+.turbo/
 coverage/
+
+**/dist/
+**/build/
+**/.next/
+**/.turbo/
+**/coverage/
+
+# =========================
+# Environment
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Logs
+# =========================
 *.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# OS
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Docker
+# =========================
+docker-data/
+*.tar
+
+# =========================
+# Prisma cache
+# =========================
+.prisma/
+.cache/
+**/.cache/
+
+# =========================
+# Turbo / Next cache
+# =========================
+.next/cache/
+.turbo/cache/
+
+# =========================
+# TypeScript
+# =========================
+*.tsbuildinfo
+
+# =========================
+# Temporary
+# =========================
+tmp/
+temp/
+
+# =========================
+# Misc
+# =========================
+.expo/
